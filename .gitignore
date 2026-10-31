@@ -1,0 +1,9 @@
+/build/
+/.vs/
+/out/
+/.tmp/
+/archive/
+*.user
+*.suo
+*.VC.db
+
