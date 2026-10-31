@@ -1,0 +1,133 @@
+﻿kSetSelectedInventoryItemRva         0x0076e0 -> 0x006f40  [0x4076e0+0x0 -> 0x406f40+0x0] associee exact
+                                                       | 
+                                                       | 
+      mov eax, dword ptr [esp + 4]                     | mov eax, dword ptr [esp + 4]
+      push esi                                         | push esi
+      mov esi, ecx                                     | mov esi, ecx
+      cmp dword ptr [esi + 0x258], eax                 | cmp dword ptr [esi + 0x244], eax
+kSetSelectedItemRva                  0x0076e0 -> 0x006f40  [0x4076e0+0x0 -> 0x406f40+0x0] associee exact
+                                                       | 
+                                                       | 
+      mov eax, dword ptr [esp + 4]                     | mov eax, dword ptr [esp + 4]
+      push esi                                         | push esi
+      mov esi, ecx                                     | mov esi, ecx
+      cmp dword ptr [esi + 0x258], eax                 | cmp dword ptr [esi + 0x244], eax
+kUseItemAnimationGateRva             0x00a02e  fonction 0x40a000 -> 0x409d90 (candidat score=0.45 sim=0.41) : instruction sans equivalent
+kHumanTickRva                        0x01a560  fonction 0x41a560 -> 0x41786f (candidat score=0.58 sim=0.44) : instruction sans equivalent
+kLifeUnlimitedTickHookRva            0x01a583  fonction 0x41a560 -> 0x41786f (candidat score=0.58 sim=0.44) : instruction sans equivalent
+kNoclipNetworkPublishRva             0x01bc4e -> 0x018087  [0x41a560+0x16ee -> 0x41786f+0x818] candidat score=0.58 sim=0.44 exact
+      call 0x41d0e0                                    | call 0x419590
+      jmp 0x41bc59                                     | jmp 0x418092
+      mov al, byte ptr [ebp - 1]                       | mov al, byte ptr [ebp - 1]
+      test al, al                                      | test al, al
+      je 0x41bdf4                                      | je 0x41822b
+      mov eax, dword ptr [ebx + 0x28]                  | mov eax, dword ptr [ebx + 0x28]
+kHumanPositionSendRva                0x01bd97 -> 0x0181ce  [0x41a560+0x1837 -> 0x41786f+0x95f] candidat score=0.58 sim=0.44 exact
+      test ah, 0x41                                    | test ah, 0x41
+      jne 0x41bdf4                                     | jne 0x41822b
+      mov ecx, dword ptr [ebp - 0xc]                   | mov ecx, dword ptr [ebp - 0xc]
+      lea eax, [ebx + 0x210]                           | lea eax, [ebx + 0x1fc]
+      mov edx, dword ptr [ebp - 8]                     | mov edx, dword ptr [ebp - 8]
+      mov edi, eax                                     | mov edi, eax
+kHumanDieRva                         0x0208b0 -> 0x01c520  [0x4208b0+0x0 -> 0x41c520+0x0] candidat score=0.92 sim=0.94 exact
+                                                       | 
+                                                       | 
+      sub esp, 0x44                                    | sub esp, 0x44
+      push ebx                                         | push ebx
+      push ebp                                         | push ebp
+      mov ebp, ecx                                     | mov ebp, ecx
+kCreateActorRva                      0x037eb0  pas sur une frontiere d'instruction
+kWatchVectorEraseRva                 0x039cb0 -> 0x032fb0  [0x439cb0+0x0 -> 0x432fb0+0x0] associee exact
+                                                       | 
+                                                       | 
+      mov edx, dword ptr [esp + 8]                     | mov edx, dword ptr [esp + 8]
+      mov eax, ecx                                     | mov eax, ecx
+      push ebx                                         | push ebx
+      mov ebx, dword ptr [esp + 8]                     | mov ebx, dword ptr [esp + 8]
+kResolvedCollisionRva                0x044e4b -> 0x03dd30  [0x444ab0+0x39b -> 0x43da10+0x320] candidat score=0.79 sim=0.49 exact
+      jmp 0x444e4b                                     | mov dword ptr [ecx + 8], edx
+      fstp st(0)                                       | mov ecx, dword ptr [ebp - 0x14]
+      mov eax, dword ptr [esi + 0x34]                  | mov eax, dword ptr [esi + 0x34]
+      test eax, eax                                    | test eax, eax
+      jne 0x444e88                                     | jne 0x43dd72
+      test ecx, ecx                                    | test ecx, ecx
+kFinishCallbackFrameRva              0x045677  fonction 0x445660 -> 0x439bc0 (candidat score=0.56 sim=0.11) : instruction sans equivalent
+kAutomobileTickRva                   0x04e540 -> 0x0464e0  [0x44e540+0x0 -> 0x4464e0+0x0] associee remplace
+                                                       | 
+                                                       | 
+      sub esp, 0xc8                                    | sub esp, 0x98
+      push ebx                                         | push ebx
+      push ebp                                         | push ebp
+      push esi                                         | push esi
+kAutomobileTargetSpeedHookRva        0x04f1f3 -> 0x047125  [0x44e540+0xcb3 -> 0x4464e0+0xc45] associee remplace
+      push 6                                           | push 6
+      fld dword ptr [eax]                              | fld dword ptr [eax]
+      fmul dword ptr [edx*4 + 0x4f7c44]                | fmul dword ptr [ecx*4 + 0x4e8b54]
+      fild dword ptr [esi + 0x25c]                     | fild dword ptr [esi + 0x25c]
+      mov eax, dword ptr [esi + 0x2c4]                 | mov eax, dword ptr [esi + 0x2bc]
+      push eax                                         | push eax
+kAutomobileAccelerationHookRva       0x04f22c -> 0x04715e  [0x44e540+0xcec -> 0x4464e0+0xc7e] associee exact
+      fstp dword ptr [esp + 0x1c]                      | fstp dword ptr [esp + 0x1c]
+      call dword ptr [edx + 0x3c]                      | call dword ptr [ecx + 0x3c]
+      fld dword ptr [esp + 0x20]                       | fld dword ptr [esp + 0x20]
+      fmul dword ptr [eax]                             | fmul dword ptr [eax]
+      fld dword ptr [esi + 0x244]                      | fld dword ptr [esi + 0x244]
+      fcomp dword ptr [esp + 0x14]                     | fcomp dword ptr [esp + 0x14]
+kAutomobileDestroyRva                0x04fc80 -> 0x047ae0  [0x44fc80+0x0 -> 0x447ae0+0x0] associee exact
+                                                       | 
+                                                       | 
+      push ecx                                         | push ecx
+      push ebx                                         | push ebx
+      push ebp                                         | push ebp
+      push esi                                         | push esi
+kAutomobileWheelTurnRateRva          0x0552e9  fonction 0x455060 -> 0x44b970 (candidat score=0.39 sim=0.24) : instruction sans equivalent
+kCameraTickRva                       0x05e510 -> 0x054600  [0x45e510+0x0 -> 0x454600+0x0] associee exact
+                                                       | 
+                                                       | 
+      push ebp                                         | push ebp
+      mov ebp, esp                                     | mov ebp, esp
+      sub esp, 0x264                                   | sub esp, 0x24c
+      push ebx                                         | push ebx
+kDeleteAllItemsRva                   0x062e80 -> 0x058eb0  [0x462e80+0x0 -> 0x458eb0+0x0] associee exact
+                                                       | 
+                                                       | 
+      push ebp                                         | push ebp
+      mov ebp, ecx                                     | mov ebp, ecx
+      mov eax, dword ptr [ebp + 0x14]                  | mov eax, dword ptr [ebp + 0x14]
+      test eax, eax                                    | test eax, eax
+kLoadLoopHookRva                     0x062f75 -> 0x058fa5  [0x462f20+0x55 -> 0x458f50+0x55] associee exact
+      cmp edi, edx                                     | cmp edi, edx
+      jae 0x463359                                     | jae 0x459389
+      mov eax, dword ptr [0x50ac08]                    | mov eax, dword ptr [0x4fa6c0]
+      push eax                                         | push eax
+      mov ecx, dword ptr [eax]                         | mov ecx, dword ptr [eax]
+      call dword ptr [ecx + 0x68]                      | call dword ptr [ecx + 0x68]
+kLoadAfterModelRva                   0x063281 -> 0x0592b1  [0x462f20+0x361 -> 0x458f50+0x361] associee exact
+      push esi                                         | push esi
+      call dword ptr [edx + 4]                         | call dword ptr [edx + 4]
+      mov eax, dword ptr [ebp + 8]                     | mov eax, dword ptr [ebp + 8]
+      mov esi, dword ptr [eax + ebx*4]                 | mov esi, dword ptr [eax + ebx*4]
+      add esi, 0x14                                    | add esi, 0x14
+      mov ecx, dword ptr [esi]                         | mov ecx, dword ptr [esi]
+kReleaseModelBranchRva               0x0633b5 -> 0x0593e5  [0x463380+0x35 -> 0x4593b0+0x35] associee exact
+      mov eax, dword ptr [esi]                         | mov eax, dword ptr [esi]
+      test eax, eax                                    | test eax, eax
+      je 0x4633c3                                      | je 0x4593f3
+      mov ecx, dword ptr [eax]                         | mov ecx, dword ptr [eax]
+      push eax                                         | push eax
+      call dword ptr [ecx + 4]                         | call dword ptr [ecx + 4]
+kProcessCheatHookRva                 0x09fc10  fonction 0x49fc10 -> 0x496360 (candidat score=0.67 sim=0.61) : instruction sans equivalent
+kMapManagerTickRva                   0x0b1ad0 -> 0x0a5320  [0x4b1ad0+0x0 -> 0x4a5320+0x0] associee exact
+                                                       | 
+                                                       | 
+      mov eax, dword ptr [0x50aae0]                    | mov eax, dword ptr [0x4fa580]
+      sub esp, 0x3c                                    | sub esp, 0x3c
+      push ebx                                         | push ebx
+      push ebp                                         | push ebp
+kMainLoopTimeScaleHookRva            0x0cd787 -> 0x0be481  [0x4cd660+0x127 -> 0x4be350+0x131] candidat score=1.33 sim=0.86 exact
+      and edx, 7                                       | add eax, edx
+      add eax, edx                                     | lea edx, [esp + 0x14]
+      sar eax, 3                                       | sar eax, 3
+      mov dword ptr [esp + 0x14], eax                  | mov dword ptr [esp + 0x14], eax
+      mov eax, dword ptr [0x50aae0]                    | mov eax, dword ptr [ecx]
+      cmp eax, ebx                                     | push edx
