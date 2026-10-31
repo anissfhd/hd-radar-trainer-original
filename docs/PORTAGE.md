@@ -94,19 +94,48 @@ Toutes sont dans `tools/apply_port.py` (rejouable sur la copie de base).
 Ces fonctions vérifient les octets du jeu avant d'écrire ; avec les valeurs du
 mod, la vérification échoue sur l'original et la fonction reste inactive.
 
-| Point | Fonctions concernées | Ce qu'il reste à faire |
+| Point | Fonctions concernées | Pourquoi |
 |---|---|---|
-| C_human::Tick + crochet de vie (`0x1A560`, `0x1A583`) | vie illimitée, ranimer (F10), protection de chute | fonction très modifiée par le mod, à retrouver dans l'original |
-| C_player::Die (11 octets) | protection absolue (partie mort réseau) | le trainer découpe 9 octets, l'original demande 11 |
-| CameraTick (`0x5E510` → `0x54600`) | aimbot, suivi des balles | cadre de pile `0x264` → `0x24C` à vérifier dans le code posé |
-| CreateActor, ResolvedCollision, FinishCallbackFrame | apparition de soldats, suivi des balles | fonctions à retrouver ou à valider |
-| Envoi de position réseau (`0x1BC4E`, `0x1BD97`) | masque de position réseau du noclip | offsets intégrés dans les octets du site |
-| AutomobileTick, TargetSpeed (`0x4F1F3`) | vitesse du véhicule | registres différents (`edx` → `ecx`), code posé à réécrire |
-| WheelTurnRate (`0x552E9`) | braquage | fonction à retrouver |
-| Boucle principale (`0xCD787`) | vitesse du jeu | instructions différentes à cet endroit |
-| UseItem (`0xA02E`) | tir rapide | fonction modifiée par le mod |
-| LoadLoop (`0x62F75` → `0x58FA5`) | cache de la scène d'inventaire | octets attendus à mettre à jour après relecture du code posé |
-| `HD_AI_AUTHORITY_*` | coop LAN | non traité dans cette étape |
+| CreateActor (hook), ResolvedCollision, FinishCallbackFrame | suivi des balles | le code posé dépend de la disposition propre au mod de `S_gun_shoot_init` (power à +0x3C) et de l'intérieur d'`Evaluate` ; dans l'original, `Finish` est intégré à `C_gun_shoot::Tick` (`0x43E0F0`) et ses champs sont à −4 |
+| `HD_AI_AUTHORITY_*` | coop LAN | non traité |
+
+## Deuxième et troisième étapes (`apply_port_etape2.py`, `apply_port_etape3.py`)
+
+| Point | Mod | Original | Remarque |
+|---|---|---|---|
+| C_human::Tick (noclip, ranimer) | `0x1A560` | `0x16FD0` | rang +0x14 des deux vtables ; cadre `348h` au lieu de `36Ch` |
+| Après `model == nullptr` (vie illimitée, chute) | `0x1A583` | `0x16FF3` | cible du même saut, `mov ecx,[ebx+1A8h]` |
+| Noclip : publication réseau | `0x1BC4E` | `0x18087` | adresses internes `0x18092` / `0x1822B` |
+| NM_HUMAN_POS (masque de position) | `0x1BD97` | `0x181CE` | `lea eax,[ebx+1FCh]` |
+| C_camera::Tick (aimbot) | `0x5E510` | `0x54600` | champs +14h..+1Ch identiques, cadre `24Ch` |
+| LoadModels (cache inventaire) | `0x62F75` | `0x58FA5` | + `0x592B1`, `0x593E5` |
+| C_automobile::Tick (noclip véhicule) | `0x4E540` | `0x464E0` | cadre `98h` |
+| Vitesse véhicule | `0x4F1F3` / `0x4F22C` | `0x47125` / `0x4715E` | `fmul [ecx*4+...]` rejoué tel quel |
+| Braquage | `0x552E9` | `0x4C276` | `ESI` reste le véhicule (`mov ecx,esi` juste après) |
+| Véhicule invulnérable | `0x4FC80` | `0x47AE0` | octets et `ret 10h` identiques |
+| Vitesse du jeu | `0xCD787` | `0xBE481` | octets identiques, `tc` en `[esp+14h]` |
+| Tir rapide (UseItem) | `0xA02E` | `0x986E` | instruction rejouée `mov eax,[ebx+1A8h]` |
+| C_player::Die (protection) | rang `0x100` (ajout du mod) | rang `0xE8` | patch de 11 octets (`kPlayerDieHookPatchSize`) |
+| Offsets en dur du noclip / suivi des balles | `0x1AC..0x274` | −0x14 | `move_dir`, `fall_speed`, `falling`, collision, `stay_mode`, `frm_head`, `shoot_countdown` |
+
+### Signature de `cbProc` et numéros de messages
+
+- Dans l'original, **tous** les `cbProc` des acteurs prennent **trois**
+  arguments (`ret 0Ch`, vérifié sur 24 vtables) au lieu de quatre (`ret 10h`).
+  Le mot `reserved` n'est plus empilé (6 appels).
+- Messages : identiques jusqu'à 27 (`CB_CHEAT 14`, `CB_SETINVENTORY 17`,
+  `CB_SETFOCUS 21`, `CB_SET_RESISTANCE 26`) ; décalés de −1 au-delà de 33.
+  `CB_USE_AUTO` : 43 → 42.
+- Triches de `CB_CHEAT` : `14` (immortalité) identique. `9` (fullhands) est
+  traitée par `C_human` et, dans l'original, ignore le paramètre « ligne de
+  catalogue » : elle donne toujours le kit standard (sans doublon).
+
+### Contrôle hors jeu
+
+`tools/verify_hooks.py` relit les 28 points de hook dans le `hde.exe` d'origine
+et compare avec les octets attendus par le trainer porté : 28/28 conformes.
+`CreateActor` (apparition de soldats) et `SetFrame` sont trouvés à l'exécution
+par motif ; chacun a un seul candidat valide dans l'original.
 
 ## Tester
 
@@ -123,4 +152,7 @@ doit l'être aussi pour pouvoir ouvrir le processus. Le journal
   offsets de champs, par classe.
 - `vtable_pairs.py`, `vtable_slots.py`, `vtable_prologues.py` : vtables.
 - `hook_sites.py` : octets aux points de hook, côte à côte.
-- `apply_port.py` : applique les correspondances vérifiées.
+- `apply_port.py`, `apply_port_etape2.py`, `apply_port_etape3.py` :
+  appliquent les correspondances vérifiées, dans cet ordre.
+- `cb_messages.py` : associe les numéros de messages `cbProc`.
+- `verify_hooks.py` : contrôle les points de hook dans l'original.

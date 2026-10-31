@@ -62,7 +62,7 @@ constexpr std::int32_t kInfiniteAmmo = 1'000'000;
 // five overwritten bytes are `test al,al / je ready / first byte of mov`.
 // The trampoline reproduces that native path for every actor except the one
 // whose currently equipped weapon has passed rapid-fire validation.
-constexpr std::uintptr_t kUseItemAnimationGateRva = 0x0000'A02E;
+constexpr std::uintptr_t kUseItemAnimationGateRva = 0x0000'986E;
 constexpr std::size_t kUseItemAnimationGatePatchSize = 5;
 constexpr std::size_t kRapidFireGateRemoteSize = 0x80;
 constexpr std::size_t kRapidFireGateActorOffset = 0x60;
@@ -479,7 +479,7 @@ bool UpdateRapidFireGate(TrainerProcess& process, std::uintptr_t actor)
     byte(0x84); byte(0xC0);                  // displaced test al,al
     byte(0x0F); byte(0x84);                  // native je 0040A04A
     dword(relative32(native_ready, next.remote + code.size() + 4));
-    byte(0x8B); byte(0x83); dword(0x1BC);    // displaced full mov eax,[ebx+1BC]
+    byte(0x8B); byte(0x83); dword(0x1A8);    // displaced full mov eax,[ebx+1A8]
     byte(0xE9);
     dword(relative32(native_continue, next.remote + code.size() + 4));
     if (code.size() > kRapidFireGateActorOffset ||

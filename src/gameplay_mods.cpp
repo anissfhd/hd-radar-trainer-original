@@ -60,12 +60,12 @@ constexpr float kNoclipReleasedFallSpeed = 0.01f;
 // forcing that pass merely to produce a network update makes walls solid
 // again. Network publication therefore remains a separate concern.
 constexpr std::int32_t kNoclipCollisionHoldMs = 1000;
-constexpr std::uintptr_t kHumanTickRva = 0x0001'A560;
+constexpr std::uintptr_t kHumanTickRva = 0x0001'6FD0;
 constexpr std::size_t kNoclipHookPatchSize = 9;
 // C_human::Tick after its `model == nullptr` early return. At this point EBX
 // is still the ticking C_human*, which lets a one-shot command run on the
 // engine's own update thread without synthesising a keyboard event.
-constexpr std::uintptr_t kLifeUnlimitedTickHookRva = 0x0001'A583;
+constexpr std::uintptr_t kLifeUnlimitedTickHookRva = 0x0001'6FF3;
 constexpr std::size_t kLifeUnlimitedTickHookPatchSize = 6;
 constexpr std::size_t kLifeUnlimitedRemoteSize = 0x200;
 constexpr std::size_t kLifeUnlimitedTargetOffset = 0x180;
@@ -90,7 +90,7 @@ constexpr std::size_t kNoclipRemoteSize = 0x400;
 // site with its local `upd` flag clear and skips NM_HUMAN_POS.  The small
 // second trampoline changes only that local flag for our current player, so
 // the existing native packet builder runs without re-enabling collision.
-constexpr std::uintptr_t kNoclipNetworkPublishRva = 0x0001'BC4E;
+constexpr std::uintptr_t kNoclipNetworkPublishRva = 0x0001'8087;
 constexpr std::size_t kNoclipNetworkPublishHookPatchSize = 11;
 constexpr std::size_t kNoclipRemotePublishCountOffset = 0x33C;
 constexpr std::size_t kNoclipRemoteActiveOffset = 0x300;
@@ -126,11 +126,11 @@ constexpr std::uintptr_t kI3dFrameUpdateRva = 0x0000'34D0;
 // so ecx is the car at entry, and its argument lands at [esp+28h] once the
 // trampoline has pushed flags and registers -- the same offset C_human::Tick
 // uses, so the time extraction below is identical.
-constexpr std::uintptr_t kAutomobileTickRva = 0x0004'E540;
+constexpr std::uintptr_t kAutomobileTickRva = 0x0004'64E0;
 constexpr std::size_t kVehicleNoclipHookPatchSize = 6;
 constexpr std::size_t kVehicleNoclipRemoteSize = 0x200;
 constexpr float kVehicleTeleportGroundClearance = 0.65f;
-constexpr std::uint32_t kUseAutomobileCallback = 43;
+constexpr std::uint32_t kUseAutomobileCallback = 42;
 constexpr unsigned kTeleportClosedMapSamples = 3;
 constexpr ULONGLONG kTeleportMapCloseTimeoutMs = 3000;
 constexpr std::uintptr_t kFrameWorldPositionOffset = 0xBC;
@@ -141,7 +141,7 @@ constexpr std::uintptr_t kFrameLocalPositionOffset = 0x14C;
 // variables at [ebp-10h], [ebp-0Ch], [ebp-08h]. Replacing only those locals
 // changes the outgoing message, never the real frame position.
 constexpr std::uintptr_t kHumanNetworkSyncPositionOffset = 0x1F0;
-constexpr std::uintptr_t kHumanPositionSendRva = 0x0001'BD97;
+constexpr std::uintptr_t kHumanPositionSendRva = 0x0001'81CE;
 constexpr std::size_t kNetworkPositionMaskHookPatchSize = 9;
 constexpr std::size_t kNetworkPositionMaskRemoteSize = 0x240;
 constexpr std::size_t kNetworkPositionMaskActiveOffset = 0x180;
@@ -310,6 +310,9 @@ constexpr std::int32_t kMaximumNativeInitResistance = 6000;
 // through C_player::Die.
 constexpr std::uintptr_t kHumanDieRva = 0x0001'C520;
 constexpr std::size_t kHumanDieHookPatchSize = 9;
+// hde.exe d'origine : C_player::Die commence par `mov eax,[004FA580]` puis
+// `sub esp,118h`. Le premier decoupage complet fait onze octets.
+constexpr std::size_t kPlayerDieHookPatchSize = 11;
 constexpr std::size_t kPlayerExplodeHookPatchSize = 10;
 constexpr std::size_t kAbsoluteProtectionRemoteSize = 0x100;
 constexpr std::size_t kProtectionRemoteTargetOffset = 0xC0;
@@ -415,15 +418,15 @@ constexpr std::uint32_t kAutomobileModeStopped = 3;
 // call site at 0x0045176E, right after the confirmed HitExplode at 0x0044CF50.
 // The trampoline returns before the function body for the protected car, so
 // `mode` never becomes MODE_DESTROYED and the motor is never cut.
-constexpr std::uintptr_t kAutomobileDestroyRva = 0x0004'FC80;
+constexpr std::uintptr_t kAutomobileDestroyRva = 0x0004'7AE0;
 constexpr std::size_t kAutomobileDestroyPatchSize = 6;
 constexpr std::size_t kVehicleDestroyRemoteSize = 0x100;
 constexpr std::size_t kVehicleDestroyVehicleOffset = 0x80;
 constexpr std::uintptr_t kAutomobileTransmissionOffset = 0x258;
 constexpr std::int32_t kAutomobileReverseTransmission = -1;
 constexpr std::int32_t kAutomobileMaximumForwardTransmission = 6;
-constexpr std::uintptr_t kAutomobileTargetSpeedHookRva = 0x0004'F1F3;
-constexpr std::uintptr_t kAutomobileAccelerationHookRva = 0x0004'F22C;
+constexpr std::uintptr_t kAutomobileTargetSpeedHookRva = 0x0004'7125;
+constexpr std::uintptr_t kAutomobileAccelerationHookRva = 0x0004'715E;
 constexpr std::size_t kVehicleSpeedRemoteSize = 0x100;
 constexpr std::size_t kVehicleAddressRemoteOffset = 0xE0;
 constexpr std::size_t kVehicleMultiplierRemoteOffset = 0xE4;
@@ -433,7 +436,7 @@ constexpr std::size_t kVehicleMultiplierRemoteOffset = 0xE4;
 // que tick_class->Tick(tc) distribue a toute la simulation. Multiplier eax a
 // cet endroit accelere le jeu entier sans toucher a la mesure reelle du temps
 // faite par igraph2.dll : aucune derive d'horloge ne s'accumule.
-constexpr std::uintptr_t kMainLoopTimeScaleHookRva = 0x000C'D787;
+constexpr std::uintptr_t kMainLoopTimeScaleHookRva = 0x000B'E481;
 constexpr std::size_t kGameSpeedRemoteSize = 0x80;
 constexpr std::size_t kGameSpeedFactorRemoteOffset = 0x60;
 constexpr float kMinimumGameSpeedMultiplier = 1.0f;
@@ -469,7 +472,7 @@ float GameSpeedStep(float current)
 // at a high multiplier the car has already crossed the map by then, which is
 // why it feels impossible to steer. Scaling this one factor with the
 // multiplier restores control without touching the physics.
-constexpr std::uintptr_t kAutomobileWheelTurnRateRva = 0x0005'52E9;
+constexpr std::uintptr_t kAutomobileWheelTurnRateRva = 0x0004'C276;
 constexpr std::size_t kAutomobileWheelTurnPatchSize = 6;
 constexpr std::uintptr_t kStockWheelTurnRateAddress = 0x004E'77A4;
 constexpr std::size_t kWheelTurnRemoteSize = 0x100;
@@ -623,12 +626,14 @@ struct PlayerDeathPatchStateT
 };
 
 using PlayerDeathPatchState = PlayerDeathPatchStateT<kHumanDieHookPatchSize>;
+using PlayerNetworkDeathPatchState =
+    PlayerDeathPatchStateT<kPlayerDieHookPatchSize>;
 using PlayerExplosionPatchState =
     PlayerDeathPatchStateT<kPlayerExplodeHookPatchSize>;
-PlayerDeathPatchState g_player_death{};
+PlayerNetworkDeathPatchState g_player_death{};
 PlayerDeathPatchState g_player_base_death{};
 PlayerExplosionPatchState g_player_explosion{};
-std::vector<PlayerDeathPatchState> g_squad_player_death{};
+std::vector<PlayerNetworkDeathPatchState> g_squad_player_death{};
 std::vector<PlayerExplosionPatchState> g_squad_player_explosion{};
 
 struct NativeNoHitState
@@ -956,7 +961,7 @@ bool UpdateWheelTurnHook(
 
     RemoteModuleInfo module{};
     constexpr std::array<std::uint8_t, kAutomobileWheelTurnPatchSize> expected{
-        0xD8, 0x0D, 0xC0, 0x66, 0x4F, 0x00};
+        0xD8, 0x0D, 0xA4, 0x77, 0x4E, 0x00};
     if (!process.GetMainModuleInfo(module) ||
         module.image_size <= kAutomobileWheelTurnRateRva + expected.size())
     {
@@ -1860,7 +1865,7 @@ bool EnsureVehicleNoclipHook(TrainerProcess& process, std::uintptr_t shared)
     next.process_id = process.ProcessId();
     next.hook = module.base_address + kAutomobileTickRva;
     constexpr std::array<std::uint8_t, 11> expected{
-        0x81, 0xEC, 0xC8, 0x00, 0x00, 0x00, 0x53, 0x55, 0x56, 0x8B, 0xF1};
+        0x81, 0xEC, 0x98, 0x00, 0x00, 0x00, 0x53, 0x55, 0x56, 0x8B, 0xF1};
     std::array<std::uint8_t, expected.size()> signature{};
     if (!process.ReadMemory(next.hook, signature.data(), signature.size()) ||
         signature != expected)
@@ -2047,7 +2052,7 @@ bool EnsureNoclipHook(TrainerProcess& process)
     next.process_id = process.ProcessId();
     next.hook = module.base_address + kHumanTickRva;
     constexpr std::array<std::uint8_t, kNoclipHookPatchSize> expected{
-        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0x6C, 0x03, 0x00, 0x00};
+        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0x48, 0x03, 0x00, 0x00};
     if (!process.ReadMemory(next.hook, next.original.data(), next.original.size()) ||
         next.original != expected)
     {
@@ -2119,15 +2124,15 @@ bool EnsureNoclipHook(TrainerProcess& process)
     }
 
     byte(0x8B); byte(0x15); absolute(kNoclipRemoteActorOffset); // mov edx,[actor]
-    byte(0xC7); byte(0x82); dword(0x1AC); dword(0); // move_dir.x
-    byte(0xC7); byte(0x82); dword(0x1B0); dword(0); // move_dir.y
-    byte(0xC7); byte(0x82); dword(0x1B4); dword(0); // move_dir.z
-    byte(0xC7); byte(0x82); dword(0x1B8); dword(0); // fall_speed
-    byte(0xC6); byte(0x82); dword(0x264); byte(0);  // falling
+    byte(0xC7); byte(0x82); dword(0x198); dword(0); // move_dir.x
+    byte(0xC7); byte(0x82); dword(0x19C); dword(0); // move_dir.y
+    byte(0xC7); byte(0x82); dword(0x1A0); dword(0); // move_dir.z
+    byte(0xC7); byte(0x82); dword(0x1A4); dword(0); // fall_speed
+    byte(0xC6); byte(0x82); dword(0x250); byte(0);  // falling
     // Keep native collision suppressed: the movement above intentionally
     // crosses geometry. A forced native update would make noclip collide with
     // walls again.
-    byte(0xC7); byte(0x82); dword(0x274); dword(kNoclipCollisionHoldMs);
+    byte(0xC7); byte(0x82); dword(0x260); dword(kNoclipCollisionHoldMs);
     // Move the published frame rather than the ticking actor's own one: on
     // foot they are the same, while driving it is the vehicle's frame.
     byte(0x8B); byte(0x15); absolute(kNoclipRemoteBodyFrameOffset);
@@ -2241,7 +2246,7 @@ bool EnsureNoclipNetworkPublishHook(TrainerProcess& process)
     constexpr std::array<std::uint8_t, kNoclipNetworkPublishHookPatchSize>
         expected{
             0x8A, 0x45, 0xFF, 0x84, 0xC0, 0x0F,
-            0x84, 0x9B, 0x01, 0x00, 0x00};
+            0x84, 0x99, 0x01, 0x00, 0x00};
     if (!process.ReadMemory(
             next.hook, next.original.data(), next.original.size()) ||
         next.original != expected)
@@ -2306,10 +2311,10 @@ bool EnsureNoclipNetworkPublishHook(TrainerProcess& process)
                                                // cmp byte ptr [ebp-1], 0
     byte(0x0F); byte(0x85);                  // jne native update block
     const std::int32_t updated_relative = static_cast<std::int32_t>(
-        (module.base_address + 0x0001'BC59) -
+        (module.base_address + 0x0001'8092) -
         (next.remote + code.size() + sizeof(std::int32_t)));
     dword(static_cast<std::uint32_t>(updated_relative));
-    jump_to(module.base_address + 0x0001'BDF4); // original `upd == false`
+    jump_to(module.base_address + 0x0001'822B); // original `upd == false`
 
     if (code.size() > 0x100 ||
         !process.WriteMemory(next.remote, code.data(), code.size()))
@@ -2840,7 +2845,7 @@ bool EnsureNetworkPositionMaskHook(TrainerProcess& process)
     constexpr std::array<std::uint8_t, kNetworkPositionMaskHookPatchSize>
         expected{
             0x8B, 0x4D, 0xF4,                         // mov ecx,[ebp-0Ch]
-            0x8D, 0x83, 0x10, 0x02, 0x00, 0x00};      // lea eax,[ebx+210h]
+            0x8D, 0x83, 0xFC, 0x01, 0x00, 0x00};      // lea eax,[ebx+1FCh]
     if (!process.ReadMemory(
             next.hook, next.original.data(), next.original.size()) ||
         next.original != expected)
@@ -3422,7 +3427,6 @@ bool FocusCameraOnActor(TrainerProcess& process, std::uintptr_t actor)
     byte(0x74); byte(0x00);                       // je fin
     // cbProc(msg, prm1, prm2, prm3) : QUATRE arguments, empiles de droite a
     // gauche, liberes par l'appelee (`ret 16`).
-    byte(0x6A); byte(0x00);                       // push prm3 = 0
     byte(0x6A); byte(0x00);                       // push prm2 = 0
     byte(0x6A); byte(0x01);                       // push prm1 = 1  (focus on)
     byte(0x68); dword(kCbSetFocusDeluxe);         // push CB_SETFOCUS
@@ -4533,7 +4537,6 @@ bool SetFramePositionOnMainThread(
         // Stop the automobile through its native CB_USE_AUTO(13) path before
         // moving the root frame. C_actor::cbProc uses the installed four-word
         // callback ABI and returns with ret 0x10.
-        byte(0x6A); byte(0x00);            // reserved = 0
         byte(0x6A); byte(0x00);            // prm2 = 0
         byte(0x6A); byte(0x0D);            // prm1 = stop immediately
         byte(0x6A); byte(static_cast<std::uint8_t>(
@@ -6474,9 +6477,9 @@ bool InstallPlayerDeathHook(
     std::uintptr_t protected_player,
     bool local_squad_scope = false)
 {
-    constexpr std::array<std::uint8_t, kHumanDieHookPatchSize> kExpected{
-        // C_player::Die: push ebp / mov ebp,esp / sub esp,0BCh.
-        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0xBC, 0x00, 0x00, 0x00};
+    constexpr std::array<std::uint8_t, kPlayerDieHookPatchSize> kExpected{
+        // C_player::Die (origine) : mov eax,[004FA580] / sub esp,118h.
+        0xA1, 0x80, 0xA5, 0x4F, 0x00, 0x81, 0xEC, 0x18, 0x01, 0x00, 0x00};
     return InstallDeathHook(
         process, function, protected_player, g_player_death, kExpected,
         "C_player::Die network death", local_squad_scope);
@@ -6517,7 +6520,7 @@ bool RestoreSquadPlayerGuards(TrainerProcess& process)
     bool restored = true;
     for (PlayerDamagePatchState& state : g_squad_player_damage)
         restored = RestorePlayerDamageHookState(process, state) && restored;
-    for (PlayerDeathPatchState& state : g_squad_player_death)
+    for (PlayerNetworkDeathPatchState& state : g_squad_player_death)
         restored = RestoreDeathHook(process, state, "C_player::Die squad") && restored;
     for (PlayerExplosionPatchState& state : g_squad_player_explosion)
         restored = RestoreDeathHook(process, state, "C_player::Explode squad") && restored;
@@ -6902,7 +6905,7 @@ bool EnsureProtectedFallHook(
     next.local_squad_scope = local_squad_scope;
     next.remote_size = kProtectedFallRemoteSize;
     constexpr std::array<std::uint8_t, kLifeUnlimitedTickHookPatchSize>
-        kExpected{0x8B, 0x83, 0xCC, 0x00, 0x00, 0x00};
+        kExpected{0x8B, 0x8B, 0xA8, 0x01, 0x00, 0x00};
     if (!process.ReadMemory(
             next.function, next.original.data(), next.original.size()) ||
         next.original != kExpected)
@@ -6981,7 +6984,6 @@ bool EnsureProtectedFallHook(
                                                   // cmp ebx,[life target]
     const std::size_t other_life = near_jump(0x85); // jne done
     byte(0xC7); byte(0x05); slot(kProtectedFallLifeTargetOffset); dword(0);
-    byte(0x6A); byte(0x00);                  // reserved
     byte(0x6A); byte(0x00);                  // prm2
     // V97 : le message et son premier parametre viennent de deux mots de la
     // page, au lieu d'etre compiles en dur. Le meme creneau sert donc aussi
@@ -7473,7 +7475,7 @@ void UpdateAbsolutePlayerProtection(
         {
             return RestorePlayerDamageHookState(process, guard);
         };
-        const auto restore_death = [&](PlayerDeathPatchState& guard)
+        const auto restore_death = [&](PlayerNetworkDeathPatchState& guard)
         {
             return RestoreDeathHook(process, guard, "C_player::Die squad");
         };
@@ -7511,11 +7513,12 @@ void UpdateAbsolutePlayerProtection(
         {
             if (ContainsFunction(g_squad_player_death, function))
                 continue;
-            PlayerDeathPatchState guard{};
+            PlayerNetworkDeathPatchState guard{};
             if (!InstallDeathHook(
                     process, function, player, guard,
-                    std::array<std::uint8_t, kHumanDieHookPatchSize>{
-                        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0xBC, 0x00, 0x00, 0x00},
+                    std::array<std::uint8_t, kPlayerDieHookPatchSize>{
+                        0xA1, 0x80, 0xA5, 0x4F, 0x00,
+                        0x81, 0xEC, 0x18, 0x01, 0x00, 0x00},
                     "C_player::Die squad", true))
             {
                 status.absolute_player_protection =
@@ -7649,7 +7652,7 @@ void UpdateAbsolutePlayerProtection(
     if (
         hit < module.base_address || hit + 5U > module.base_address + module.image_size ||
         die < module.base_address ||
-        die + kHumanDieHookPatchSize > module.base_address + module.image_size ||
+        die + kPlayerDieHookPatchSize > module.base_address + module.image_size ||
         explode < module.base_address ||
         explode + kHumanDieHookPatchSize > module.base_address + module.image_size ||
         base_die < module.base_address ||
@@ -7795,7 +7798,7 @@ void UpdateAbsolutePlayerProtection(
     {
         next_heartbeat = now + 5000ULL;
         std::array<std::uint8_t, 5> hit_bytes{};
-        std::array<std::uint8_t, kHumanDieHookPatchSize> die_bytes{};
+        std::array<std::uint8_t, kPlayerDieHookPatchSize> die_bytes{};
         std::array<std::uint8_t, kHumanDieHookPatchSize> base_die_bytes{};
         std::array<std::uint8_t, kPlayerExplodeHookPatchSize> explosion_bytes{};
         const bool hit_ok = process.ReadMemory(
@@ -7965,7 +7968,7 @@ bool QueueNativePlayerRevive(
     next.source = current_player;
     next.remote_size = kPlayerReviveRemoteSize;
     constexpr std::array<std::uint8_t, kNoclipHookPatchSize> kExpected{
-        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0x6C, 0x03, 0x00, 0x00};
+        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0x48, 0x03, 0x00, 0x00};
     if (!process.ReadMemory(
             next.function, next.original.data(), next.original.size()) ||
         next.original != kExpected)
@@ -9573,9 +9576,11 @@ bool UpdateAimbotCameraHook(
     const RadarSnapshot& snapshot,
     const RadarEntity* target)
 {
-    constexpr std::uintptr_t kCameraTickRva = 0x0005E510;
+    // C_camera::Tick du hde.exe d'origine : meme prologue, cadre de 24Ch au
+    // lieu de 264h. Les champs +14h/+18h/+1Ch lus ici sont inchanges.
+    constexpr std::uintptr_t kCameraTickRva = 0x00054600;
     constexpr std::array<std::uint8_t, 9> kExpected{
-        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0x64, 0x02, 0x00, 0x00};
+        0x55, 0x8B, 0xEC, 0x81, 0xEC, 0x4C, 0x02, 0x00, 0x00};
 
     if (g_aimbot.applied && g_aimbot.process_id != process.ProcessId())
         RestoreAimbot(process);
@@ -10018,7 +10023,7 @@ bool UpdateBulletTrackHook(
         byte(0x0F); byte(0x85);              // jne after rapid re-arm
         const std::size_t rapid_other_jump = code.size();
         dword(0);
-        byte(0xC7); byte(0x80); dword(0x260); dword(0);
+        byte(0xC7); byte(0x80); dword(0x24C); dword(0);
                                                 // shooter.shoot_countdown=0
         const std::size_t after_rapid_rearm = code.size();
         const std::uint32_t rapid_empty_relative = relative32(
@@ -10093,7 +10098,7 @@ bool UpdateBulletTrackHook(
         byte(0x83); byte(0x7A); byte(0x1C); byte(0x02);
                                                 // cmp actor.type,enemy
         primary_skip(0x85);
-        byte(0x83); byte(0xBA); dword(0x254); byte(0x04);
+        byte(0x83); byte(0xBA); dword(0x240); byte(0x04);
                                                 // cmp stay_mode,dead
         primary_skip(0x84);
         byte(0x8B); byte(0x42); byte(0x28); // eax=actor.frame
@@ -10101,7 +10106,7 @@ bool UpdateBulletTrackHook(
         primary_skip(0x84);
         byte(0x39); byte(0x90); dword(0x80);// cmp [frame+80],actor
         primary_skip(0x85);
-        byte(0x8B); byte(0x8A); dword(0x1C8); // ecx=actor.head
+        byte(0x8B); byte(0x8A); dword(0x1B4); // ecx=actor.head
         byte(0x85); byte(0xC9);
         primary_skip(0x84);
         byte(0x3B); byte(0x0D);
@@ -10243,7 +10248,7 @@ bool UpdateBulletTrackHook(
         fallback_byte(0x02);                    // cmp actor.type,enemy
         candidate_retry_jumps.push_back(fallback_near_jump(0x85));
         fallback_byte(0x83); fallback_byte(0xBA);
-        fallback_dword(0x254); fallback_byte(0x04); // cmp stay_mode,dead
+        fallback_dword(0x240); fallback_byte(0x04); // cmp stay_mode,dead
         candidate_retry_jumps.push_back(fallback_near_jump(0x84));
         fallback_byte(0x8B); fallback_byte(0x42); fallback_byte(0x28);
                                                     // eax=actor.frame
@@ -10254,7 +10259,7 @@ bool UpdateBulletTrackHook(
                                                     // cmp [frame+80],actor
         candidate_retry_jumps.push_back(fallback_near_jump(0x85));
         fallback_byte(0x8B); fallback_byte(0x8A);
-        fallback_dword(0x1C8);                  // ecx=actor.frm_head
+        fallback_dword(0x1B4);                  // ecx=actor.frm_head
         fallback_byte(0x85); fallback_byte(0xC9); // test ecx,ecx
         candidate_retry_jumps.push_back(fallback_near_jump(0x84));
 
@@ -10289,7 +10294,7 @@ bool UpdateBulletTrackHook(
         // and do_smoke stay untouched.
         fallback_byte(0x8B); fallback_byte(0xD3);   // edx = validated actor
         fallback_byte(0x8B); fallback_byte(0x8A);
-        fallback_dword(0x1C8);                  // ecx = head frame
+        fallback_dword(0x1B4);                  // ecx = head frame
         const auto copy_head_component = [&](std::uint32_t source,
                                              std::uint8_t destination)
         {
@@ -10488,7 +10493,7 @@ bool UpdateBulletTrackHook(
         finish_byte(0x83); finish_byte(0x7A); finish_byte(0x1C);
         finish_byte(0x02);                    // enemy actor only
         finish_native_jumps.push_back(finish_native_jump(0x85));
-        finish_byte(0x83); finish_byte(0xBA); finish_dword(0x254);
+        finish_byte(0x83); finish_byte(0xBA); finish_dword(0x240);
         finish_byte(0x04);                    // dead actor uses native branch
         finish_native_jumps.push_back(finish_native_jump(0x84));
         finish_byte(0x8B); finish_byte(0x4A); finish_byte(0x28);
@@ -10498,7 +10503,7 @@ bool UpdateBulletTrackHook(
         finish_byte(0x39); finish_byte(0x91); finish_dword(0x80);
                                                 // root still owns actor
         finish_native_jumps.push_back(finish_native_jump(0x85));
-        finish_byte(0x8B); finish_byte(0x82); finish_dword(0x1C8);
+        finish_byte(0x8B); finish_byte(0x82); finish_dword(0x1B4);
                                                 // eax=current head frame
         finish_byte(0x85); finish_byte(0xC0);
         finish_byte(0x0F); finish_byte(0x85); // jnz use head
@@ -10925,7 +10930,7 @@ bool UpdateVehicleSpeedHook(
     float multiplier)
 {
     constexpr std::array<std::uint8_t, 7> kExpectedTarget{
-        0xD8, 0x0C, 0x95, 0x44, 0x7C, 0x4F, 0x00};
+        0xD8, 0x0C, 0x8D, 0x54, 0x8B, 0x4E, 0x00};
     constexpr std::array<std::uint8_t, 6> kExpectedAcceleration{
         0xD9, 0x44, 0x24, 0x20, 0xD8, 0x08};
 
@@ -11534,7 +11539,6 @@ bool GrantCompleteDeluxeInventoryV4Unsafe(
 
     byte(0x9C);                            // pushfd
     byte(0x60);                            // pushad
-    byte(0x6A); byte(0x00);               // push reserved = 0
     byte(0x6A); byte(0x00);               // push prm2 = 0
     byte(0x68); dword(static_cast<std::uint32_t>(remote_vector));
                                            // push prm1 = vector<S_item>*
@@ -11666,13 +11670,14 @@ bool InstallPersistentInventoryModelCache(
     static std::uintptr_t installed_stub = 0;
     // Installed Ultimate Mod hde.exe routines (verified against the native
     // SetInventory call sites and their complete instruction signatures).
-    constexpr std::uintptr_t kLoadLoopHookRva = 0x0006'2F75;
-    constexpr std::uintptr_t kLoadAfterModelRva = 0x0006'3281;
-    constexpr std::uintptr_t kReleaseModelBranchRva = 0x0006'33B5;
+    // hde.exe d'origine : C_inventory::LoadModels associe a l'identique.
+    constexpr std::uintptr_t kLoadLoopHookRva = 0x0005'8FA5;
+    constexpr std::uintptr_t kLoadAfterModelRva = 0x0005'92B1;
+    constexpr std::uintptr_t kReleaseModelBranchRva = 0x0005'93E5;
     constexpr std::uintptr_t kInventorySceneGlobalRva = 0x000F'A6C0;
     constexpr std::size_t kCacheStubSize = 0x80;
     constexpr std::array<std::uint8_t, 5> kExpectedLoad{
-        0xA1, 0x08, 0xAC, 0x50, 0x00};
+        0xA1, 0xC0, 0xA6, 0x4F, 0x00};
     constexpr std::array<std::uint8_t, 2> kExpectedRelease{0x74, 0x0C};
     constexpr std::array<std::uint8_t, 2> kCachedRelease{0xEB, 0x0C};
 
@@ -12560,7 +12565,6 @@ bool GrantCompleteDeluxeInventory(
     byte(0x56);                            // preserve table
     byte(0x57);                            // preserve player
     byte(0x55);                            // preserve selected count
-    byte(0x6A); byte(0x00);               // push reserved = 0
     byte(0x53);                            // push prm2 = catalog row
     byte(0x6A); byte(static_cast<std::uint8_t>(kFullhandsCheat));
                                            // push prm1 = CHEAT_FULLHANDS
@@ -22703,7 +22707,7 @@ bool ApplyNativeActorCallback(
     const std::uintptr_t hook =
         module.base_address + kLifeUnlimitedTickHookRva;
     constexpr std::array<std::uint8_t, kLifeUnlimitedTickHookPatchSize>
-        expected{0x8B, 0x83, 0xCC, 0x00, 0x00, 0x00};
+        expected{0x8B, 0x8B, 0xA8, 0x01, 0x00, 0x00};
     std::array<std::uint8_t, kLifeUnlimitedTickHookPatchSize> original{};
     if (!process.ReadMemory(hook, original.data(), original.size()) ||
         original != expected)
@@ -22748,7 +22752,6 @@ bool ApplyNativeActorCallback(
     // This is exactly C_game_mission::BroadcastMessage(CB_CHEAT, 14, 0) for
     // the controlled C_player only. The installed callback ABI has four
     // stack values and returns with ret 0x10.
-    byte(0x6A); byte(0x00);                  // reserved
     byte(0x6A); byte(0x00);                  // prm2
     byte(0x6A); byte(static_cast<std::uint8_t>(prm1));
     byte(0x6A); byte(static_cast<std::uint8_t>(message));
