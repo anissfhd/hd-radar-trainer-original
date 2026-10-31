@@ -20,9 +20,9 @@ namespace
 constexpr std::uintptr_t kActorFrameOffset = 0x28;
 constexpr std::uintptr_t kInventoryBeginOffset = 0x5C;
 constexpr std::uintptr_t kInventoryEndOffset = 0x60;
-constexpr std::uintptr_t kEquippedWeaponOffset = 0x244;
-constexpr std::uintptr_t kSelectedIndexOffset = 0x258;
-constexpr std::uintptr_t kShootCountdownOffset = 0x260;
+constexpr std::uintptr_t kEquippedWeaponOffset = 0x230;
+constexpr std::uintptr_t kSelectedIndexOffset = 0x244;
+constexpr std::uintptr_t kShootCountdownOffset = 0x24C;
 constexpr std::uintptr_t kFrameActorBackReferenceOffset = 0x80;
 
 // C_inventory_item is 0x20 bytes. The previous implementation incorrectly
@@ -32,8 +32,8 @@ constexpr std::uintptr_t kItemReserveOffset = 0x18;
 constexpr std::uintptr_t kItemBulletsOffset = 0x1C;
 
 // Global C_table pointers and edition selector, expressed as module RVAs.
-constexpr std::uintptr_t kWeaponTablePointerRva = 0x0010AAD0;
-constexpr std::uintptr_t kGameModeRva = 0x001086E0;
+constexpr std::uintptr_t kWeaponTablePointerRva = 0x000FA570;
+constexpr std::uintptr_t kGameModeRva = 0x000F8A68;
 
 // C_table and its packed S_desc_item layout (Insanity3D Tabler2).
 constexpr std::uintptr_t kTableNumItemsOffset = 0x0C;

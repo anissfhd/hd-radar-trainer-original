@@ -40,11 +40,11 @@ constexpr float kMinimumBulletTrackRadius = 40.0f;
 constexpr float kMaximumBulletTrackRadius = 500.0f;
 constexpr std::uintptr_t kActorFrameOffset = 0x28;
 constexpr std::uintptr_t kActorModelOffset = 0x24;
-constexpr std::uintptr_t kActorMoveDirectionOffset = 0x1AC;
-constexpr std::uintptr_t kActorFallSpeedOffset = 0x1B8;
-constexpr std::uintptr_t kActorCurrentPoseOffset = 0x1BC;
-constexpr std::uintptr_t kActorFallingOffset = 0x264;
-constexpr std::uintptr_t kActorCollisionTestCountdownOffset = 0x274;
+constexpr std::uintptr_t kActorMoveDirectionOffset = 0x198;
+constexpr std::uintptr_t kActorFallSpeedOffset = 0x1A4;
+constexpr std::uintptr_t kActorCurrentPoseOffset = 0x1A8;
+constexpr std::uintptr_t kActorFallingOffset = 0x250;
+constexpr std::uintptr_t kActorCollisionTestCountdownOffset = 0x260;
 constexpr std::uintptr_t kFrameActorBackReferenceOffset = 0x80;
 constexpr std::uintptr_t kFrameSetPositionVtableOffset = 0x0C;
 constexpr float kTeleportGroundClearance = 0.08f;
@@ -140,7 +140,7 @@ constexpr std::uintptr_t kFrameLocalPositionOffset = 0x14C;
 // that exact point `ebx` is C_human* and the three `to` coordinates are local
 // variables at [ebp-10h], [ebp-0Ch], [ebp-08h]. Replacing only those locals
 // changes the outgoing message, never the real frame position.
-constexpr std::uintptr_t kHumanNetworkSyncPositionOffset = 0x204;
+constexpr std::uintptr_t kHumanNetworkSyncPositionOffset = 0x1F0;
 constexpr std::uintptr_t kHumanPositionSendRva = 0x0001'BD97;
 constexpr std::size_t kNetworkPositionMaskHookPatchSize = 9;
 constexpr std::size_t kNetworkPositionMaskRemoteSize = 0x240;
@@ -162,31 +162,31 @@ constexpr std::uint16_t kPeerAllHostPlayersNetworkId = 0xFFFFU;
 constexpr float kTeleportVerifySnapDistance = 1.5f;
 constexpr unsigned kTeleportVerifySamples = 8;
 constexpr ULONGLONG kTeleportVerifyTimeoutMs = 1200;
-constexpr std::uintptr_t kPlayerIsEnemyVtableOffset = 0xA4;
+constexpr std::uintptr_t kPlayerIsEnemyVtableOffset = 0x9C;
 // C_human::Hit is the virtual slot used by both locally simulated bullets and
 // NM_HUMAN_HIT packets.  The installed Deluxe binary resolves it to
 // C_player::Hit at 0x00429100.  Unlike IsEnemy, this is the point at which
 // resistance is changed, so it also covers an attack already authorised by a
 // remote peer before our perception filter ran.
-constexpr std::uintptr_t kPlayerHitVtableOffset = 0x104;
+constexpr std::uintptr_t kPlayerHitVtableOffset = 0xEC;
 // C_player overrides C_human::Die at this virtual slot. The old protection
 // guarded only the C_human base routine, which was too late in LAN: the
 // C_player override builds its NM_HUMAN_DIE packet before it calls the base
 // routine. Guarding this entry rejects death before the local state or the
 // outbound death packet exists.
-constexpr std::uintptr_t kPlayerDieVtableOffset = 0x100;
+constexpr std::uintptr_t kPlayerDieVtableOffset = 0xE8;
 // C_player::Explode is a separate path from Hit.  Explosive shells, bazookas,
 // grenades and mines enter here and C_human::Explode subtracts resistance
 // before any of the Die guards have a chance to run.  Guard its virtual entry
 // instead, so the model/death transition is never started for our player.
-constexpr std::uintptr_t kPlayerExplodeVtableOffset = 0xDC;
+constexpr std::uintptr_t kPlayerExplodeVtableOffset = 0xD0;
 // Source and installed-binary confirmed C_player::no_hit_cheat. The native
 // `immortality` cheat (CB_CHEAT, 14) toggles this exact byte and
 // C_player::cbProc(CB_HIT) returns before dispatching C_player::Hit while it
 // is set. Unlike a shared function hook, this state belongs to each player
 // instance, which is the correct primitive for current-player versus squad
 // scope (including Ultimate Mod player actors).
-constexpr std::uintptr_t kPlayerNoHitCheatOffset = 0x2D4;
+constexpr std::uintptr_t kPlayerNoHitCheatOffset = 0x2C0;
 
 constexpr std::uintptr_t kActorInventoryBeginOffset = 0x5C;
 // V116 - la base de `C_inventory` DANS un soldat, DEDUITE et non transposee.
@@ -299,7 +299,7 @@ bool IsCreatedSoldier(std::uintptr_t actor)
 // relecture de controle qui refuse d'agir si les valeurs lues ne ressemblent
 // pas a une vie de soldat. Voir ValidateExtendedHealthLayout.
 constexpr std::uintptr_t kPlayerResistanceOffset = 0x2C;
-constexpr std::uintptr_t kPlayerInitResistanceOffset = 0x2D8;
+constexpr std::uintptr_t kPlayerInitResistanceOffset = 0x2C4;
 constexpr std::int32_t kExtendedHealthValue = 20000;
 // La vie native vaut `200 + endurance * 1400` (Actors.cpp), donc au plus
 // 1600. La marge autorise un mod genereux sans jamais accepter une lecture
@@ -308,13 +308,13 @@ constexpr std::int32_t kMaximumNativeInitResistance = 6000;
 // The base entry is also needed for incoming NM_HUMAN_DIE. The Ultimate Mod
 // can dispatch that packet straight to C_human::Die instead of returning
 // through C_player::Die.
-constexpr std::uintptr_t kHumanDieRva = 0x0002'08B0;
+constexpr std::uintptr_t kHumanDieRva = 0x0001'C520;
 constexpr std::size_t kHumanDieHookPatchSize = 9;
 constexpr std::size_t kPlayerExplodeHookPatchSize = 10;
 constexpr std::size_t kAbsoluteProtectionRemoteSize = 0x100;
 constexpr std::size_t kProtectionRemoteTargetOffset = 0xC0;
-constexpr std::uintptr_t kHumanStayModeOffset = 0x254;
-constexpr std::uintptr_t kPlayerModeOffset = 0x2B4;
+constexpr std::uintptr_t kHumanStayModeOffset = 0x240;
+constexpr std::uintptr_t kPlayerModeOffset = 0x2A0;
 constexpr std::uint32_t kHumanStayModeAlive = 1;
 constexpr std::uint32_t kPlayerModeProgram = 2;
 constexpr std::uint32_t kHumanStayModeDead = 4;
@@ -338,9 +338,9 @@ constexpr std::uint32_t kPlayerReviveCompleted = 2;
 constexpr std::uint32_t kPlayerReviveRejected = 3;
 constexpr ULONGLONG kPlayerReviveTimeoutMs = 2500;
 constexpr std::uintptr_t kFrameWorldMatrixOffset = 0x8C;
-constexpr std::uintptr_t kActorAimDirectionOffset = 0x1D0;
-constexpr std::uintptr_t kActorAimCountOffset = 0x1E8;
-constexpr std::uintptr_t kActorBrestFrameOffset = 0x1C4;
+constexpr std::uintptr_t kActorAimDirectionOffset = 0x1BC;
+constexpr std::uintptr_t kActorAimCountOffset = 0x1D4;
+constexpr std::uintptr_t kActorBrestFrameOffset = 0x1B0;
 constexpr std::uintptr_t kFrameParentOffset = 0x18;
 constexpr std::int32_t kAimbotAimCount = 2500;
 constexpr std::size_t kAimbotRemoteSize = 0x100;
@@ -348,15 +348,15 @@ constexpr std::size_t kAimbotEnabledOffset = 0xC0;
 constexpr std::size_t kAimbotDeltaOffset = 0xC4;
 constexpr std::size_t kAimbotObservedDeltaOffset = 0xD0;
 constexpr std::size_t kAimbotObservedSequenceOffset = 0xDC;
-constexpr std::uintptr_t kActorUsingItemOffset = 0x250;
-constexpr std::uintptr_t kHumanProgramOffset = 0x284;
-constexpr std::uintptr_t kHumanProgramDirtyOffset = 0x290;
-constexpr std::uintptr_t kHumanCommandNewOffset = 0x291;
-constexpr std::uintptr_t kHumanHoldingFireOffset = 0x292;
-constexpr std::uintptr_t kHumanActorEnumCountOffset = 0x294;
-constexpr std::uintptr_t kHumanWatchActorsOffset = 0x298;
+constexpr std::uintptr_t kActorUsingItemOffset = 0x23C;
+constexpr std::uintptr_t kHumanProgramOffset = 0x270;
+constexpr std::uintptr_t kHumanProgramDirtyOffset = 0x27C;
+constexpr std::uintptr_t kHumanCommandNewOffset = 0x27D;
+constexpr std::uintptr_t kHumanHoldingFireOffset = 0x27E;
+constexpr std::uintptr_t kHumanActorEnumCountOffset = 0x280;
+constexpr std::uintptr_t kHumanWatchActorsOffset = 0x284;
 constexpr std::uintptr_t kCommandSubjectOffset = 0x04;
-constexpr std::uintptr_t kMissionPointerRva = 0x0010AD4C;
+constexpr std::uintptr_t kMissionPointerRva = 0x000FA7E4;
 constexpr std::uintptr_t kMissionActorBeginOffset = 0x68;
 constexpr std::uintptr_t kMissionActorEndOffset = 0x6C;
 constexpr std::uintptr_t kMissionMapManagerOffset = 0xA0;
@@ -471,7 +471,7 @@ float GameSpeedStep(float current)
 // multiplier restores control without touching the physics.
 constexpr std::uintptr_t kAutomobileWheelTurnRateRva = 0x0005'52E9;
 constexpr std::size_t kAutomobileWheelTurnPatchSize = 6;
-constexpr std::uintptr_t kStockWheelTurnRateAddress = 0x004F'66C0;
+constexpr std::uintptr_t kStockWheelTurnRateAddress = 0x004E'77A4;
 constexpr std::size_t kWheelTurnRemoteSize = 0x100;
 constexpr std::size_t kWheelTurnVehicleOffset = 0x80;
 constexpr std::size_t kWheelTurnRateOffset = 0x84;
@@ -3359,9 +3359,9 @@ bool FocusCameraOnActor(TrainerProcess& process, std::uintptr_t actor)
 {
     if (!IsSanePointer(actor) || !process.IsConnected())
         return false;
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x400;
     constexpr std::size_t kActorOffset = 0x200;
     constexpr std::size_t kCompletionOffset = 0x204;
@@ -4422,12 +4422,12 @@ bool SetFramePositionOnMainThread(
     std::uintptr_t vehicle_to_stop = 0,
     std::uintptr_t scene = 0)
 {
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::size_t kRemoteSize = 0x100;
     constexpr std::size_t kDestinationOffset = 0xD0;
     constexpr std::size_t kCompletionOffset = 0xE0;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::array<std::uint8_t, 15> kExpectedFrameUpdate{
         0x8B, 0x4C, 0x24, 0x04, 0x83, 0xEC, 0x0C, 0x8B,
         0x41, 0x0C, 0xA9, 0x00, 0x00, 0x80, 0x00};
@@ -4757,9 +4757,9 @@ bool IssueMoveOrderOnGameThread(
     if (soldiers.empty() || !process.IsConnected())
         return false;
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kProcessCheatExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     // V144 - LA LIMITE DE TRENTE-CINQ HOMMES, TROUVEE DANS LE JOURNAL
     //
     // Le journal du joueur montre l'ordre de deplacement qui aboutit a 1 et a
@@ -5310,17 +5310,17 @@ bool ResetEnemyAwarenessOnMainThread(
     const RadarSnapshot& snapshot,
     EnemyInvisibilityScope scope)
 {
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009FC10;
-    constexpr std::uintptr_t kWatchVectorEraseRva = 0x00039CB0;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x00096360;
+    constexpr std::uintptr_t kWatchVectorEraseRva = 0x00032FB0;
     constexpr std::uint32_t kEnemyType = 2;
     constexpr std::uint32_t kProgramMove = 0;
     constexpr std::uint32_t kProgramAttack = 4;
     constexpr std::uint32_t kMoveReasonAttackReach = 3;
-    constexpr std::uintptr_t kProgramBeginOffset = 0x288;
-    constexpr std::uintptr_t kProgramEndOffset = 0x28C;
-    constexpr std::uintptr_t kHoldingFireInstalledOffset = 0x296;
-    constexpr std::uintptr_t kActorEnumInstalledOffset = 0x298;
-    constexpr std::uintptr_t kWatchVectorInstalledOffset = 0x29C;
+    constexpr std::uintptr_t kProgramBeginOffset = 0x274;
+    constexpr std::uintptr_t kProgramEndOffset = 0x278;
+    constexpr std::uintptr_t kHoldingFireInstalledOffset = 0x282;
+    constexpr std::uintptr_t kActorEnumInstalledOffset = 0x284;
+    constexpr std::uintptr_t kWatchVectorInstalledOffset = 0x288;
     constexpr std::uintptr_t kCommandSubjectInstalledOffset = 0x04;
     constexpr std::uintptr_t kCommandMoveReasonInstalledOffset = 0x0C;
     constexpr std::uintptr_t kCommandProgramItemInstalledOffset = 0x2C;
@@ -5330,11 +5330,11 @@ bool ResetEnemyAwarenessOnMainThread(
     constexpr std::uint32_t kWatchActorSize = 0x20U;
     constexpr std::uint32_t kMaximumWatchBytes =
         4096U * kWatchActorSize;
-    constexpr std::uintptr_t kVoiceInstalledOffset = 0x280;
+    constexpr std::uintptr_t kVoiceInstalledOffset = 0x26C;
     constexpr std::uintptr_t kListenBeginInstalledOffset = 0x3C;
     constexpr std::uintptr_t kListenEndInstalledOffset = 0x40;
     constexpr std::array<std::uint8_t, 5> kProcessCheatExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::array<std::uint8_t, 6> kVectorEraseExpected{
         0x8B, 0x54, 0x24, 0x08, 0x8B, 0xC1};
 
@@ -5791,9 +5791,9 @@ void LogEnemyAwarenessCensus(
     const RadarSnapshot& snapshot,
     EnemyInvisibilityScope scope)
 {
-    constexpr std::uintptr_t kProgramBeginOffset = 0x288;
-    constexpr std::uintptr_t kProgramEndOffset = 0x28C;
-    constexpr std::uintptr_t kWatchVectorOffset = 0x29C;
+    constexpr std::uintptr_t kProgramBeginOffset = 0x274;
+    constexpr std::uintptr_t kProgramEndOffset = 0x278;
+    constexpr std::uintptr_t kWatchVectorOffset = 0x288;
     constexpr std::uintptr_t kCommandProgramItemOffset = 0x2C;
     constexpr std::uintptr_t kCommandSubjectCensusOffset = 0x04;
     constexpr std::uint32_t kProgramAttackType = 4;
@@ -5966,8 +5966,8 @@ bool MaintainEnemyAwarenessSuppression(
     const RadarSnapshot& snapshot,
     EnemyInvisibilityScope scope)
 {
-    constexpr std::uintptr_t kHoldingFireOffset = 0x296;
-    constexpr std::uintptr_t kActorEnumOffset = 0x298;
+    constexpr std::uintptr_t kHoldingFireOffset = 0x282;
+    constexpr std::uintptr_t kActorEnumOffset = 0x284;
     constexpr std::uint32_t kScanInhibit = 0;
 
     const bool inhibit_rescan =
@@ -6506,7 +6506,7 @@ bool InstallPlayerExplosionHook(
         // C_player::Explode: sub esp,44h / push ebx / push ebp / push esi
         // / mov esi,ecx / xor ecx,ecx. The complete xor is mandatory: V76
         // copied only 0x33 and corrupted native explosion handling.
-        0x83, 0xEC, 0x44, 0x53, 0x55, 0x56, 0x8B, 0xF1, 0x33, 0xC9};
+        0x83, 0xEC, 0x44, 0x33, 0xD2, 0x53, 0x55, 0x56, 0x8B, 0xF1};
     return InstallDeathHook(
         process, function, protected_player, g_player_explosion, kExpected,
         "C_player::Explode explosive damage", local_squad_scope);
@@ -7532,7 +7532,7 @@ void UpdateAbsolutePlayerProtection(
             if (!InstallDeathHook(
                     process, function, player, guard,
                     std::array<std::uint8_t, kPlayerExplodeHookPatchSize>{
-                        0x83, 0xEC, 0x44, 0x53, 0x55, 0x56, 0x8B, 0xF1, 0x33, 0xC9},
+                        0x83, 0xEC, 0x44, 0x33, 0xD2, 0x53, 0x55, 0x56, 0x8B, 0xF1},
                     "C_player::Explode squad", true, true))
             {
                 status.absolute_player_protection =
@@ -11443,7 +11443,7 @@ bool GrantCompleteDeluxeInventoryV4Unsafe(
         g_fullhands_series_process = process.ProcessId();
         g_fullhands_series = 0;
     }
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x00096360;
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kVectorOffset = 0x100;
     constexpr std::size_t kItemListOffset = 0x120;
@@ -11451,7 +11451,7 @@ bool GrantCompleteDeluxeInventoryV4Unsafe(
     constexpr std::uint32_t kSetInventoryCallback = 17;
     constexpr std::uint32_t kCatalogItemCount = 115;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
 
     granted_count = 0;
     if (!process.IsConnected() || !snapshot ||
@@ -11669,7 +11669,7 @@ bool InstallPersistentInventoryModelCache(
     constexpr std::uintptr_t kLoadLoopHookRva = 0x0006'2F75;
     constexpr std::uintptr_t kLoadAfterModelRva = 0x0006'3281;
     constexpr std::uintptr_t kReleaseModelBranchRva = 0x0006'33B5;
-    constexpr std::uintptr_t kInventorySceneGlobalRva = 0x0010'AC08;
+    constexpr std::uintptr_t kInventorySceneGlobalRva = 0x000F'A6C0;
     constexpr std::size_t kCacheStubSize = 0x80;
     constexpr std::array<std::uint8_t, 5> kExpectedLoad{
         0xA1, 0x08, 0xAC, 0x50, 0x00};
@@ -11835,12 +11835,12 @@ bool GrantCompleteDeluxeInventory(
     // thread, then lets the native Fullhands callback construct the next lot.
     // No item pointer is released or reference-counted by trainer code.
     constexpr bool replace_previous = true;
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x00096360;
     // Exact installed Ultimate binary function. Official Deluxe source:
     // C_inventory::DeleteAllItems() calls ReleaseModels when visible, then
     // erases [items.begin()+1, items.end()) with native smart-pointer release.
-    constexpr std::uintptr_t kDeleteAllItemsRva = 0x00062E80;
-    constexpr std::uintptr_t kSetSelectedInventoryItemRva = 0x000076E0;
+    constexpr std::uintptr_t kDeleteAllItemsRva = 0x00058EB0;
+    constexpr std::uintptr_t kSetSelectedInventoryItemRva = 0x00006F40;
     // Do not warm the inventory models from this stub. V25.1 called
     // C_game_menu::SetInventory (0x0045FDC0, reached as [actor+18h]+1FCh) with
     // the inventory and then with NULL: it did build every model of the new
@@ -11853,7 +11853,7 @@ bool GrantCompleteDeluxeInventory(
     // to the engine is necessary but not sufficient: the call also has to
     // happen where the engine itself makes it.
     constexpr std::uintptr_t kInventorySubobjectOffset = 0x54;
-    constexpr std::uintptr_t kSelectedInventoryItemOffset = 0x258;
+    constexpr std::uintptr_t kSelectedInventoryItemOffset = 0x244;
     constexpr std::uintptr_t kActiveInventoryItemOffset = 0x6C;
     constexpr std::size_t kRemoteSize = 0x2000;
     constexpr std::size_t kCatalogRowsOffset = 0x400;
@@ -11869,8 +11869,8 @@ bool GrantCompleteDeluxeInventory(
     constexpr std::size_t kCompletionOffset = 0x1800;
     constexpr std::uint32_t kCheatCallback = 14;
     constexpr std::uint32_t kFullhandsCheat = 9;
-    constexpr std::uintptr_t kGameConfigurationRva = 0x0010'86E0;
-    constexpr std::uintptr_t kInventoryTablesRva = 0x0010'AAD0;
+    constexpr std::uintptr_t kGameConfigurationRva = 0x000F'8A68;
+    constexpr std::uintptr_t kInventoryTablesRva = 0x000F'A570;
     constexpr std::uint32_t kFirstCatalogRow = 1;
     constexpr std::uint32_t kCatalogCapacity = 0x400;
     // Permit every named weapon row observed in the Deluxe/Ultimate catalog.
@@ -11901,12 +11901,12 @@ bool GrantCompleteDeluxeInventory(
     constexpr std::uint32_t kMaximumInventoryItems = 256;
     constexpr std::uint32_t kGrantedAmount = 100;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::array<std::uint8_t, 10> kDeleteAllItemsExpected{
         0x55, 0x8B, 0xE9, 0x8B, 0x45, 0x14, 0x85, 0xC0, 0x74, 0x05};
     constexpr std::array<std::uint8_t, 13> kSetSelectedItemExpected{
         0x8B, 0x44, 0x24, 0x04, 0x56, 0x8B, 0xF1,
-        0x39, 0x86, 0x58, 0x02, 0x00, 0x00};
+        0x39, 0x86, 0x44, 0x02, 0x00, 0x00};
     struct InventoryItemView
     {
         std::uintptr_t object;
@@ -14089,9 +14089,9 @@ bool SpawnActorsOnGameThread(
     const std::uint32_t count = static_cast<std::uint32_t>(
         (std::min)(destinations.size(), kMaximumSpawnedSoldiers));
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kProcessCheatExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kSpawnRemoteSize = 0x2000;
     constexpr std::size_t kSpawnCountOffset = 0x400;
     constexpr std::size_t kSpawnSourceOffset = 0x404;
@@ -14627,9 +14627,9 @@ bool DestroyActorsOnGameThread(
     {
         return false;
     }
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kProcessCheatExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kMissionOffset = 0x204;
@@ -16560,9 +16560,9 @@ bool ApplyFicheOnGameThread(
 {
     if (soldiers.empty() || table_update_vtable_offset == 0)
         return false;
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kCompletionOffset = 0x204;
@@ -17142,9 +17142,9 @@ bool EmptySoldierHandsOnGameThread(
     if (soldiers.empty())
         return false;
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kCompletionOffset = 0x204;
@@ -17463,9 +17463,9 @@ bool SetFramePositionsOnMainThread(
     if (frames.empty() || frames.size() != positions.size())
         return false;
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kCompletionOffset = 0x204;
@@ -17672,9 +17672,9 @@ bool NameCreatedSoldiersOnGameThread(
     if (soldiers.empty())
         return false;
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kCompletionOffset = 0x204;
@@ -17909,14 +17909,14 @@ bool NameCreatedSoldiersOnGameThread(
 // La selection se fait ensuite par la fonction native que le trainer emploie
 // deja pour la rotation d'armes.
 constexpr std::uintptr_t kActorInventoryEndOffset = 0x60;
-constexpr std::uintptr_t kActorSelectedIndexOffset = 0x258;
+constexpr std::uintptr_t kActorSelectedIndexOffset = 0x244;
 constexpr std::uintptr_t kInventoryItemIdOffset = 0x08;
 constexpr std::uintptr_t kInventoryItemReserveOffset = 0x18;
 constexpr std::uintptr_t kInventoryItemBulletsOffset = 0x1C;
-constexpr std::uintptr_t kSetSelectedItemRva = 0x0000'76E0;
+constexpr std::uintptr_t kSetSelectedItemRva = 0x0000'6F40;
 constexpr std::array<std::uint8_t, 13> kSetSelectedItemPrologue{
     0x8B, 0x44, 0x24, 0x04, 0x56, 0x8B, 0xF1,
-    0x39, 0x86, 0x58, 0x02, 0x00, 0x00};
+    0x39, 0x86, 0x44, 0x02, 0x00, 0x00};
 // Prologue de `C_inventory::AddItem`. Le `A1 xx xx xx xx` d'ouverture charge
 // une adresse absolue, qui differe d'un binaire a l'autre : on l'ignore.
 constexpr std::array<std::uint8_t, 18> kAddItemBody{
@@ -18173,9 +18173,9 @@ bool GiveWeaponOnGameThread(
     {
         return false;
     }
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kItemOffset = 0x204;
@@ -19270,9 +19270,9 @@ bool OrderEngageOnGameThread(
     {
         return false;
     }
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kPrgAttackOffset = 0x300;
     constexpr std::size_t kPrgMoveOffset = 0x320;
@@ -20461,9 +20461,9 @@ bool EquipLastItemOnGameThread(
     if (soldiers.empty() || !IsSanePointer(set_selected_item))
         return false;
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kRemoteSize = 0x1000;
     constexpr std::size_t kCountOffset = 0x200;
     constexpr std::size_t kSelectOffset = 0x204;
@@ -20776,9 +20776,9 @@ bool SwitchControlledSoldier(
     if (g_original_soldier == 0 && IsSanePointer(from))
         g_original_soldier = from;
 
-    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'FC10;
+    constexpr std::uintptr_t kProcessCheatHookRva = 0x0009'6360;
     constexpr std::array<std::uint8_t, 5> kProcessCheatExpected{
-        0xB8, 0x5C, 0x10, 0x00, 0x00};
+        0x83, 0xEC, 0x38, 0x53, 0x55};
     constexpr std::size_t kSwitchRemoteSize = 0x400;
     constexpr std::size_t kSwitchCompletionOffset = 0x200;
 

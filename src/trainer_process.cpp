@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdlib>
 #include <cwchar>
 #include <limits>
@@ -13,9 +14,15 @@ namespace hd
 {
 namespace
 {
-// Hidden & Dangerous Deluxe (hde.exe), SHA-256:
-// 5D5EED6174658B8FACFBC1251146B109BBB12AD9A119168AA3489F80979D62D0
-constexpr std::uintptr_t kHDTickClassPointerRva = 0x0010AD4C;
+// Cette copie du trainer est portee pour le hde.exe D'ORIGINE (H&D Deluxe
+// 1.50, 2003), SHA-256 :
+// 4FD0B4E26FD23FCB827A5AB96A4F49D84E2EA07EAF1E3BAF10285E3648C63825
+// Ses adresses et offsets ne valent que pour ce binaire. Le hde.exe de
+// l'Ultimate Mod (recompile en 2026) a une autre disposition memoire : on le
+// refuse plutot que d'ecrire au hasard dans sa memoire.
+constexpr DWORD kOriginalHdeTimeDateStamp = 0x3F7D64C4;
+constexpr DWORD kOriginalHdeSizeOfImage = 0x0010A000;
+constexpr std::uintptr_t kHDTickClassPointerRva = 0x000FA7E4;
 
 struct ProcessSearch
 {
@@ -202,6 +209,24 @@ bool TrainerProcess::RefreshConnection(const wchar_t* executable_name)
 
     process_id_ = last_candidate_process_id_;
     window_ = search.window;
+
+    // Juste apres le lancement, la liste des modules peut ne pas etre encore
+    // lisible : on se deconnecte et la prochaine recherche reessaiera.
+    RemoteModuleInfo module{};
+    LONG pe_offset = 0;
+    IMAGE_NT_HEADERS32 headers{};
+    if (!GetMainModuleInfo(module) ||
+        !ReadMemory(module.base_address + offsetof(IMAGE_DOS_HEADER, e_lfanew), pe_offset) ||
+        pe_offset <= 0 ||
+        !ReadMemory(module.base_address + static_cast<std::uintptr_t>(pe_offset), headers) ||
+        headers.Signature != IMAGE_NT_SIGNATURE ||
+        headers.FileHeader.TimeDateStamp != kOriginalHdeTimeDateStamp ||
+        headers.OptionalHeader.SizeOfImage != kOriginalHdeSizeOfImage)
+    {
+        last_error_ = ERROR_REVISION_MISMATCH;
+        Disconnect();
+        return false;
+    }
     return true;
 }
 

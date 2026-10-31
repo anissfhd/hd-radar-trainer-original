@@ -11,7 +11,9 @@ namespace hd
 {
 namespace
 {
-constexpr wchar_t kProfileRegistryKey[] = L"Software\\HDPhase1";
+// Cle propre a la copie "jeu d'origine" : elle ne lit ni n'ecrase jamais les
+// reglages du trainer de l'Ultimate Mod (Software\HDPhase1).
+constexpr wchar_t kProfileRegistryKey[] = L"Software\\HDPhase1_Original";
 constexpr wchar_t kProfileRegistryValue[] = L"CheatSelection";
 constexpr wchar_t kHotkeysRegistryValue[] = L"CheatHotkeys";
 constexpr wchar_t kInventoryModeRegistryValue[] = L"InventoryMode";

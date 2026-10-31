@@ -34,21 +34,21 @@ constexpr std::uint32_t kSceneViewProjectionOffset = 0x8C;
 // C_map_manager_imp::Tick begins with a relocatable five-byte absolute load
 // in the supported hde.exe. A temporary detour here lets the game's own
 // I3D_scene::UnmapScreenPoint run on the mission thread.
-constexpr std::uintptr_t kMapManagerTickRva = 0x000B1AD0;
+constexpr std::uintptr_t kMapManagerTickRva = 0x000A5320;
 // Rendering timestamps recovered from the official Insanity3D sources and
 // verified in the installed i3d2.dll vtable accessors for this x86 build.
 constexpr std::uint32_t kSceneLastRenderTimeOffset = 0x18C;
 // hde.exe's ballistic collision callback reads three byte properties from the
 // collision-material table rooted at this revision-specific global pointer.
-constexpr std::uint32_t kCollisionTablePointerRva = 0x0010AC04;
+constexpr std::uint32_t kCollisionTablePointerRva = 0x000FA6BC;
 // hde.exe exposes a network role through two console variables of its own
 // command table (entries at .rdata:0x004F9E98 and 0x004F9EA8), and the engine
 // branches on them in 0x004713AD / 0x004716EA to pick the host or the client
 // path. They are only a refinement, never the detector: a LAN test proved
 // both stay 0 for a session started from the multiplayer menu, because only
 // the console and the command line assign them.
-constexpr std::uint32_t kNetHostRva = 0x0010ABE4;
-constexpr std::uint32_t kNetJoinRva = 0x0010ABE5;
+constexpr std::uint32_t kNetHostRva = 0x000FA69C;
+constexpr std::uint32_t kNetJoinRva = 0x000FA69D;
 constexpr std::uint32_t kCollisionTablePropertyCountOffset = 0x0C;
 constexpr std::uint32_t kCollisionTableDescriptorsOffset = 0x20;
 constexpr std::uint32_t kCollisionTableDataOffset = 0x24;
@@ -68,9 +68,9 @@ constexpr std::uint32_t kFrameFlagsOffset = 0x0C;
 constexpr std::uint32_t kFrameChildrenOffset = 0x20;
 constexpr std::uint32_t kActorTypeOffset = 0x1C;
 constexpr std::uint32_t kActorFrameOffset = 0x28;
-constexpr std::uint32_t kActorHeadFrameOffset = 0x1C8;
-constexpr std::uint32_t kActorStayModeOffset = 0x254;
-constexpr std::uint32_t kActorActivePlayerOffset = 0x2B8;
+constexpr std::uint32_t kActorHeadFrameOffset = 0x1B4;
+constexpr std::uint32_t kActorStayModeOffset = 0x240;
+constexpr std::uint32_t kActorActivePlayerOffset = 0x2A4;
 constexpr std::uint32_t kFrameActorBackReferenceOffset = 0x80;
 constexpr std::uint32_t kFrameWorldDirectionOffset = 0xAC;
 constexpr std::uint32_t kFrameWorldPositionOffset = 0xBC;
@@ -421,7 +421,7 @@ bool UnmapNativeMapPointOnMainThread(
     constexpr std::size_t kCollisionClosestHitOffset = 0x40;
     constexpr std::uint32_t kExactRayCollisionFlags = 0x0104'0000;
     constexpr std::array<std::uint8_t, 5> kExpected{
-        0xA1, 0xE0, 0xAA, 0x50, 0x00};
+        0xA1, 0x80, 0xA5, 0x4F, 0x00};
 
     ray_origin = {};
     ray_direction = {};

@@ -635,6 +635,13 @@ void DrawHeader(
             "[OK] Connecté à hde.exe  •  PID %lu",
             static_cast<unsigned long>(game_process.ProcessId()));
     }
+    else if (game_process.LastError() == ERROR_REVISION_MISMATCH)
+    {
+        std::snprintf(
+            status_text,
+            sizeof(status_text),
+            "hde.exe refusé : ce trainer ne vise que le jeu d'origine 1.50");
+    }
     else if (game_process.LastError() != ERROR_SUCCESS)
     {
         std::snprintf(

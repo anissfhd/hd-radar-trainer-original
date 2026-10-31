@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+﻿cmake_minimum_required(VERSION 3.21)
 
 project(HDPhase1 LANGUAGES CXX)
 
@@ -102,7 +102,7 @@ target_link_libraries(HDPhase1 PRIVATE
 )
 
 set_target_properties(HDPhase1 PROPERTIES
-    OUTPUT_NAME "HDFinalAdvancedV165_JOURNAL_RAPIDE"
+    OUTPUT_NAME "HDFinalAdvancedV165_ORIGINAL"
 )
 
 function(add_ai_authority_helper target_name output_name role_definition)
