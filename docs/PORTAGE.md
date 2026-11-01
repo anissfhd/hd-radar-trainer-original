@@ -200,6 +200,17 @@ la dépendance au suivi des balles diffèrent). Deux défauts communs aux deux :
 
 Journal : `Aimbot: target locked …` (raison), `Aimbot: quick mouse gesture …`.
 
+## Plantage de Fullhands (touche M), 1er novembre
+
+Deux plantages du jeu (14:56 et 15:03), violation d'accès à `page+0x8C` du
+trampoline Fullhands, à l'instant même où il s'exécutait. `+0x8C` est le
+`mov eax,[eax]` qui suit la requête de table de la boucle du catalogue. Cette
+boucle allait jusqu'à la ligne `0x3FF` ; le catalogue de l'original est bien
+plus court, et au-delà de sa dernière ligne la requête rendait un pointeur
+invalide. La boucle s'arrête maintenant au nombre réel de lignes : le
+`array_length` des descripteurs des colonnes « type » (3) et « nom » (0).
+Journal : `Fullhands: catalogue rows=…`.
+
 ## Fluidité
 
 - La boucle du trainer n'avait aucune pause : son rythme venait de la synchro

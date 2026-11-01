@@ -12160,6 +12160,41 @@ bool GrantCompleteDeluxeInventory(
         "Fullhands: name column type=%u stride=%u bytes.",
         static_cast<unsigned>(name_column_type),
         static_cast<unsigned>(name_column_stride));
+    // hde.exe d'origine : le catalogue compte bien moins de lignes que celui
+    // du mod. La boucle du stub allait jusqu'a 0x3FF ; au-dela de la derniere
+    // ligne, la requete de table rendait un pointeur invalide et
+    // `mov eax,[eax]` faisait planter le jeu. Le nombre de lignes est le
+    // `array_length` (+6, 16 bits) des descripteurs des deux colonnes lues.
+    std::uint16_t type_column_rows = 0;
+    std::uint16_t name_column_rows = 0;
+    if (!process.ReadMemory(
+            column_descriptors + kTypeCatalogProperty * kColumnDescriptorSize +
+                6U,
+            type_column_rows) ||
+        !process.ReadMemory(
+            column_descriptors + kNameCatalogProperty * kColumnDescriptorSize +
+                6U,
+            name_column_rows))
+    {
+        LogDiagnostic("Fullhands: catalogue row count unreadable.");
+        return false;
+    }
+    const std::uint32_t catalog_end = (std::min)(
+        {static_cast<std::uint32_t>(type_column_rows),
+         static_cast<std::uint32_t>(name_column_rows),
+         kCatalogCapacity});
+    if (catalog_end <= kFirstCatalogRow)
+    {
+        LogDiagnostic(
+            "Fullhands: catalogue too small (type rows=%u name rows=%u).",
+            static_cast<unsigned>(type_column_rows),
+            static_cast<unsigned>(name_column_rows));
+        return false;
+    }
+    LogDiagnostic(
+        "Fullhands: catalogue rows=%u (type column %u, name column %u).",
+        catalog_end, static_cast<unsigned>(type_column_rows),
+        static_cast<unsigned>(name_column_rows));
     if (!process.ReadMemory(
             snapshot->player_object_address, player_vtable) ||
         !IsSanePointer(player_vtable) ||
@@ -12676,8 +12711,8 @@ bool GrantCompleteDeluxeInventory(
     byte(0x45);                            // inc ebp
     const std::size_t next_catalog_row = code.size();
     byte(0x43);                            // inc ebx
-    byte(0x81); byte(0xFB); dword(kCatalogCapacity);
-                                           // cmp ebx,400h
+    byte(0x81); byte(0xFB); dword(catalog_end);
+                                           // cmp ebx,lignes du catalogue
     byte(0x0F); byte(0x8C);                // jl catalog_loop
     const std::size_t loop_displacement = code.size();
     dword(0);
