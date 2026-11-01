@@ -238,7 +238,10 @@ bool ResolveWeaponTable(
             table.table + kTableDescriptorsOffset, table.descriptors) ||
         !process.ReadMemory(table.table + kTableDataOffset, table.data) ||
         !process.ReadMemory(table.table + kTableDataSizeOffset, table.data_size) ||
-        table.property_count <= kRecoilProperties.back() ||
+        // hde.exe d'origine : la table des objets s'arrete a 0x1D, sans les
+        // colonnes de dispersion et de recul du mod. Seul le mode de tir est
+        // exige ici ; la precision stable verifie ses colonnes elle-meme.
+        table.property_count <= kFireModeProperty ||
         table.property_count > kMaximumTableProperties ||
         !IsSanePointer(table.descriptors) || !IsSanePointer(table.data) ||
         table.data_size == 0 || table.data_size > 64U * 1024U * 1024U)
@@ -572,6 +575,20 @@ void CaptureContext(const WeaponContext& context)
 
 bool ApplyStableTableValues(TrainerProcess& process)
 {
+    if (g_state.context.weapon_table.property_count <=
+        kRecoilProperties.back())
+    {
+        static bool logged = false;
+        if (!logged)
+        {
+            logged = true;
+            LogDiagnostic(
+                "Stable precision: unavailable, the item table has %u "
+                "properties (dispersion/recoil columns are Ultimate Mod only).",
+                g_state.context.weapon_table.property_count);
+        }
+        return false;
+    }
     if (!g_state.stable_applied)
     {
         std::array<std::uint32_t, 9> properties{};
@@ -698,11 +715,27 @@ void UpdateWeaponModifiers(
     }
 
     WeaponContext context{};
+    static bool context_ok = true;
     if (!ResolveWeaponContext(
             process, radar_snapshot->player_object_address, context))
     {
+        if (context_ok)
+        {
+            context_ok = false;
+            LogDiagnostic(
+                "Weapon modifiers: no supported weapon in hand for player "
+                "%08X (not an automatic weapon, or weapon table unreadable).",
+                static_cast<unsigned>(radar_snapshot->player_object_address));
+        }
         RestoreAll(process);
         return;
+    }
+    if (!context_ok)
+    {
+        context_ok = true;
+        LogDiagnostic(
+            "Weapon modifiers: weapon %u in hand, table %u properties.",
+            context.item_id, context.weapon_table.property_count);
     }
 
     if (!g_state.context_captured ||

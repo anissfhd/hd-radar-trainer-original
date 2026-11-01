@@ -164,6 +164,17 @@ maintenant à `0xA8` ; la fiche est à `+0x190`.
 
 **Corrigé** : un échec du suivi des balles coupait aussi l'aimbot.
 
+**Corrigé (armes)** : la table des objets de l'original s'arrête à la
+propriété `0x1D` ; les colonnes « Err factors » (dispersion, `0x1D..0x22`)
+et « Fire shaking angles » (recul, `0x23..0x25`) n'existent que dans le mod.
+Le trainer exigeait plus de `0x25` propriétés avant toute action sur l'arme :
+balles illimitées, tir rapide et précision stable étaient tous refusés. Seul
+le mode de tir (`0x0C`, énuméré, identique) est maintenant exigé. La
+précision stable reste indisponible sur l'original (colonnes absentes).
+Vérifiés identiques : choix de la table selon le mode de jeu, champs de
+l'objet d'inventaire (`+0x08`, `+0x18`, `+0x1C`), porte d'animation de
+`UseItem`.
+
 Vérifié en jeu (journal du 1er novembre) : vitesse du jeu, les quatre gardes
 de la protection absolue, filtre de dégâts, `CreateActor`, `menu_id`, radar,
 ESP.
