@@ -10809,17 +10809,18 @@ void UpdateAimbot(
                 bullet_tally[3], found ? 1 : 0);
         }
     }
+    // Jeu d'origine : le hook du suivi des balles n'est pas encore porte et
+    // il est toujours refuse. Son echec ne coupe plus l'aimbot, qui passe par
+    // un hook distinct (C_camera::Tick).
+    bool bullet_hook_failed = false;
     if (settings.bullet_track_enabled)
     {
         if (!UpdateBulletTrackHook(
                 process, *snapshot, bullet_target, rapid_fire_actor,
                 !settings.bullets_through_walls, instant_wall_impact))
         {
-            RestoreAimbot(process);
             DrainAndRestoreBulletTrackHook(process);
-            set_statuses(
-                AimbotStatus::WriteFailed, BulletTrackStatus::WriteFailed);
-            return;
+            bullet_hook_failed = true;
         }
     }
     else
@@ -10828,6 +10829,8 @@ void UpdateAimbot(
     }
     const BulletTrackStatus bullet_status = !settings.bullet_track_enabled
         ? BulletTrackStatus::Disabled
+        : bullet_hook_failed
+        ? BulletTrackStatus::WriteFailed
         : (bullet_target
             ? BulletTrackStatus::Active
             : BulletTrackStatus::NoTargetInCircle);
@@ -23170,7 +23173,7 @@ const char* BulletTrackStatusText(const GameplayStatus& status)
     case BulletTrackStatus::UnsupportedLayout:
         return "[ERREUR] Orientation Bullet Track non validée.";
     case BulletTrackStatus::WriteFailed:
-        return "[ERREUR] Hook projectile Bullet Track refusé.";
+        return "[ERREUR] Bullet Track pas encore porté sur le jeu d'origine.";
     case BulletTrackStatus::Disabled:
     default:
         return "Désactivé : trajectoire normale.";
