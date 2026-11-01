@@ -790,11 +790,48 @@ struct AimbotPatchState
     Vector3 last_commanded_delta{};
     std::uint32_t last_observed_sequence = 0;
     ULONGLONG last_switch_tick = 0;
+    // Derniere fois que la cible verrouillee etait directement visible.
+    ULONGLONG locked_seen_tick = 0;
     bool command_valid = false;
     bool applied = false;
 };
 
 AimbotPatchState g_aimbot{};
+
+// La cible verrouillee reste suivie tant qu'elle vit, meme si elle sort de la
+// vue un instant (fenetre, porte, modele non dessine sur une image). Au-dela
+// de ce delai sans etre vue, l'aimbot reprend l'ennemi le plus proche du
+// viseur.
+constexpr ULONGLONG kAimbotLockGraceMs = 1200;
+
+// Geste volontaire vers un autre ennemi : la souris parcourt au moins ce
+// nombre de comptes horizontaux dans la fenetre de temps donnee.
+constexpr long kAimbotSwitchMouseCounts = 500;
+constexpr ULONGLONG kAimbotSwitchWindowMs = 200;
+constexpr ULONGLONG kAimbotSwitchCooldownMs = 350;
+
+// Mouvements bruts regroupes par tranches de 10 ms. Recus et lus sur le meme
+// thread (boucle de messages de la fenetre du trainer).
+struct RawMouseBucket
+{
+    ULONGLONG slot = 0;
+    long horizontal = 0;
+};
+std::array<RawMouseBucket, 64> g_raw_mouse{};
+bool g_raw_mouse_logged = false;
+
+long RecentRawMouseHorizontal(ULONGLONG now, ULONGLONG window_ms)
+{
+    const ULONGLONG newest = now / 10;
+    const ULONGLONG oldest = newest - window_ms / 10;
+    long sum = 0;
+    for (const RawMouseBucket& bucket : g_raw_mouse)
+    {
+        if (bucket.slot >= oldest && bucket.slot <= newest)
+            sum += bucket.horizontal;
+    }
+    return sum;
+}
 
 // Remote page shared by the three Bullet Track trampolines: projectile
 // redirection, native recipient resolution and the transient damage callback
@@ -9717,43 +9754,84 @@ bool UpdateAimbotCameraHook(
 
 int ConsumeAimbotHorizontalSwitchIntent(TrainerProcess& process)
 {
+    // L'ancienne detection comparait la direction de camera observee a la
+    // derniere consigne ecrite. Mais la consigne change des que la cible ou
+    // le joueur bouge, et la camera observee pouvait dater de la consigne
+    // precedente : l'ecart passait le seuil sans aucun geste, l'aimbot
+    // changeait de cible puis revenait. On lit maintenant la souris elle-meme
+    // (Raw Input), uniquement quand le jeu a le focus.
     if (!g_aimbot.applied || !g_aimbot.command_valid ||
-        g_aimbot.process_id != process.ProcessId())
+        g_aimbot.process_id != process.ProcessId() || g_aimbot.actor == 0 ||
+        GetForegroundWindow() != process.WindowHandle())
     {
         return 0;
     }
 
-    std::uint32_t sequence_before = 0;
-    std::uint32_t sequence_after = 0;
-    Vector3 observed{};
-    if (!process.ReadMemory(
-            g_aimbot.remote + kAimbotObservedSequenceOffset,
-            sequence_before) ||
-        sequence_before == g_aimbot.last_observed_sequence ||
-        !process.ReadMemory(
-            g_aimbot.remote + kAimbotObservedDeltaOffset, observed) ||
-        !process.ReadMemory(
-            g_aimbot.remote + kAimbotObservedSequenceOffset,
-            sequence_after) ||
-        sequence_before != sequence_after ||
-        !IsSaneMoveDirection(observed))
-    {
-        return 0;
-    }
-    g_aimbot.last_observed_sequence = sequence_after;
-
-    constexpr float kRapidHorizontalIntentThreshold = 0.10f;
-    constexpr ULONGLONG kSwitchCooldownMs = 220;
-    const float horizontal_change =
-        observed.x - g_aimbot.last_commanded_delta.x;
     const ULONGLONG now = GetTickCount64();
-    if (std::fabs(horizontal_change) < kRapidHorizontalIntentThreshold ||
-        now - g_aimbot.last_switch_tick < kSwitchCooldownMs)
-    {
+    if (now - g_aimbot.last_switch_tick < kAimbotSwitchCooldownMs)
         return 0;
-    }
+    const long horizontal =
+        RecentRawMouseHorizontal(now, kAimbotSwitchWindowMs);
+    if (std::labs(horizontal) < kAimbotSwitchMouseCounts)
+        return 0;
     g_aimbot.last_switch_tick = now;
-    return horizontal_change > 0.0f ? 1 : -1;
+    // Le meme geste ne doit pas declencher un second changement.
+    g_raw_mouse = {};
+    LogDiagnostic(
+        "Aimbot: quick mouse gesture %ld counts in %llu ms -> switch %s.",
+        horizontal, static_cast<unsigned long long>(kAimbotSwitchWindowMs),
+        horizontal > 0 ? "right" : "left");
+    return horizontal > 0 ? 1 : -1;
+}
+
+// Garde la cible deja verrouillee tant qu'elle est vivante et a portee. Elle
+// peut ne pas etre directement visible pendant kAimbotLockGraceMs : un mur
+// fin, un cadre de fenetre ou un modele non dessine pendant une image ne
+// doivent pas faire basculer l'aimbot sur un autre ennemi.
+const RadarEntity* SelectLockedAimbotTarget(
+    const RadarSnapshot& snapshot,
+    float maximum_distance,
+    std::uintptr_t locked_actor)
+{
+    if (locked_actor == 0)
+        return nullptr;
+    for (std::uint32_t index = 0;
+         index < snapshot.entity_array.count; ++index)
+    {
+        const RadarEntity& entity = snapshot.entity_array.entities[index];
+        if (entity.actor_address != locked_actor)
+            continue;
+        if (entity.active == 0 || entity.team != EntityTeam::Enemy ||
+            entity.stay_mode == kHumanStayModeDead ||
+            !IsSaneWorldPosition(entity.head_position))
+        {
+            return nullptr;
+        }
+        if (maximum_distance > 0.0f)
+        {
+            const float distance_squared = LengthSquared(SubtractVector(
+                entity.head_position, snapshot.player_aim_position));
+            if (!std::isfinite(distance_squared) ||
+                distance_squared > maximum_distance * maximum_distance)
+            {
+                return nullptr;
+            }
+        }
+        Vector2 projected{};
+        if (!WorldToScreen(
+                entity.head_position, projected, snapshot.view_projection,
+                snapshot.game_client_width, snapshot.game_client_height))
+        {
+            return nullptr;   // derriere la camera
+        }
+        const ULONGLONG now = GetTickCount64();
+        if (entity.directly_visible != 0)
+            g_aimbot.locked_seen_tick = now;
+        else if (now - g_aimbot.locked_seen_tick > kAimbotLockGraceMs)
+            return nullptr;
+        return &entity;
+    }
+    return nullptr;
 }
 
 void ClearBulletTrackHook()
@@ -10769,6 +10847,12 @@ void UpdateAimbot(
                 *snapshot, aimbot_range,
                 locked_actor, switch_direction);
         }
+        // Sans geste volontaire, on reste sur la cible deja verrouillee.
+        if (!aimbot_target)
+        {
+            aimbot_target = SelectLockedAimbotTarget(
+                *snapshot, aimbot_range, locked_actor);
+        }
         if (!aimbot_target)
         {
             aimbot_target = SelectAimbotTarget(
@@ -10859,6 +10943,15 @@ void UpdateAimbot(
     {
         set_statuses(AimbotStatus::WriteFailed, bullet_status);
         return;
+    }
+    if (g_aimbot.actor != target->actor_address)
+    {
+        g_aimbot.locked_seen_tick = GetTickCount64();
+        LogDiagnostic(
+            "Aimbot: target locked %08X (%s).",
+            static_cast<unsigned>(target->actor_address),
+            switch_direction != 0 ? "mouse gesture" :
+            locked_actor != 0 ? "previous target lost" : "closest to crosshair");
     }
     g_aimbot.actor = target->actor_address;
     status.aimbot = AimbotStatus::Active;
@@ -22877,6 +22970,22 @@ void RestoreGameplayModifiers(TrainerProcess& game_process)
     RestoreVehicleSpeed(game_process);
     RestoreVehicleInvulnerability(game_process);
     RestoreGameSpeed(game_process);
+}
+
+void ReportRawMouseMotion(long horizontal_counts)
+{
+    if (horizontal_counts == 0)
+        return;
+    const ULONGLONG slot = GetTickCount64() / 10;
+    RawMouseBucket& bucket = g_raw_mouse[slot % g_raw_mouse.size()];
+    if (bucket.slot != slot)
+        bucket = {slot, 0};
+    bucket.horizontal += horizontal_counts;
+    if (!g_raw_mouse_logged)
+    {
+        g_raw_mouse_logged = true;
+        LogDiagnostic("Aimbot: raw mouse motion received (first sample).");
+    }
 }
 
 bool ApplyNativeLifeUnlimited(

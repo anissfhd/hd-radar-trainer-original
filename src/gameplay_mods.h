@@ -447,6 +447,11 @@ void UpdateGameplayModifiers(
 
 void RestoreGameplayModifiers(TrainerProcess& game_process);
 
+// Mouvement horizontal brut de la souris (Raw Input, en comptes), recu par la
+// fenetre du trainer meme quand le jeu a le focus. L'aimbot y reconnait un
+// geste rapide et volontaire vers un autre ennemi.
+void ReportRawMouseMotion(long horizontal_counts);
+
 // Executes the native callback behind the manual `immortality` command on
 // the controlled player's game thread. No keyboard input is simulated.
 bool ApplyNativeLifeUnlimited(

@@ -613,6 +613,21 @@ LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM w_param, LPARAM l_
         return HTCLIENT;
     }
 
+    case WM_INPUT:
+    {
+        RAWINPUT raw{};
+        UINT size = sizeof(raw);
+        if (GetRawInputData(
+                reinterpret_cast<HRAWINPUT>(l_param), RID_INPUT, &raw, &size,
+                sizeof(RAWINPUTHEADER)) != static_cast<UINT>(-1) &&
+            raw.header.dwType == RIM_TYPEMOUSE &&
+            (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) == 0)
+        {
+            hd::ReportRawMouseMotion(raw.data.mouse.lLastX);
+        }
+        break;   // DefWindowProc doit aussi voir WM_INPUT
+    }
+
     case WM_GETMINMAXINFO:
     {
         auto* min_max = reinterpret_cast<MINMAXINFO*>(l_param);
@@ -824,6 +839,14 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, wchar_t*, int show_command)
     hd::LogDiagnostic(
         "Noclip: selective keyboard hook installed=%d.",
         noclip_keyboard_hook ? 1 : 0);
+    // Souris brute, recue meme quand le jeu a le focus : l'aimbot y lit le
+    // geste rapide qui demande de changer de cible.
+    const RAWINPUTDEVICE raw_mouse{0x01, 0x02, RIDEV_INPUTSINK, window};
+    hd::LogDiagnostic(
+        "Aimbot: raw mouse input registered=%d.",
+        RegisterRawInputDevices(&raw_mouse, 1, sizeof(raw_mouse)) ? 1 : 0);
+    ULONGLONG loop_rate_since = GetTickCount64();
+    unsigned loop_rate_count = 0;
     bool done = false;
 
     while (!done)
@@ -1562,7 +1585,25 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, wchar_t*, int show_command)
         {
             ResetD3DDevice();
         }
+        // Jeu en plein ecran exclusif (appareil du trainer perdu) ou fenetre
+        // reduite : Present rend la main aussitot, sans attendre la synchro
+        // verticale. Sans pause, la boucle tournait a vide et relisait la
+        // memoire du jeu des centaines de fois par seconde.
+        if (FAILED(present_result) || IsIconic(window))
+            Sleep(10);
 
+        ++loop_rate_count;
+        const ULONGLONG loop_now = GetTickCount64();
+        if (loop_now - loop_rate_since >= 30000)
+        {
+            hd::LogDiagnostic(
+                "Boucle du trainer: %u tours/s (present=%08X reduite=%d).",
+                static_cast<unsigned>(
+                    loop_rate_count * 1000ULL / (loop_now - loop_rate_since)),
+                static_cast<unsigned>(present_result), IsIconic(window) ? 1 : 0);
+            loop_rate_since = loop_now;
+            loop_rate_count = 0;
+        }
     }
 
     hd::RestoreWeaponModifiers(game_process);

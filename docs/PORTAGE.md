@@ -179,6 +179,39 @@ Vérifié en jeu (journal du 1er novembre) : vitesse du jeu, les quatre gardes
 de la protection absolue, filtre de dégâts, `CreateActor`, `menu_id`, radar,
 ESP.
 
+## Aimbot : verrou de cible et changement par geste (1er novembre)
+
+La logique de l'aimbot est celle du trainer du mod (seuls le point de hook et
+la dépendance au suivi des balles diffèrent). Deux défauts communs aux deux :
+
+- **Verrou perdu** : la cible verrouillée n'était gardée que si elle était
+  « directement visible » à chaque image. Ce drapeau exige que le modèle ait
+  été dessiné récemment et qu'un rayon passe : il clignote. À chaque
+  clignement, l'aimbot prenait l'ennemi le plus proche du viseur, puis
+  restait sur lui. Maintenant la cible reste verrouillée tant qu'elle vit, est
+  à portée et devant la caméra ; elle peut être cachée jusqu'à 1,2 s.
+- **Faux changements** : le « geste rapide » se déduisait de l'écart entre la
+  direction de caméra observée et la dernière consigne écrite. La consigne
+  change dès que la cible ou le joueur bouge, d'où des changements de cible
+  sans geste, puis des allers-retours. Le trainer lit maintenant la souris
+  brute (Raw Input, `RIDEV_INPUTSINK`), seulement quand le jeu a le focus :
+  500 comptes horizontaux en 200 ms changent de cible vers ce côté (pause de
+  350 ms entre deux changements).
+
+Journal : `Aimbot: target locked …` (raison), `Aimbot: quick mouse gesture …`.
+
+## Fluidité
+
+- La boucle du trainer n'avait aucune pause : son rythme venait de la synchro
+  verticale de sa fenêtre. Quand le jeu est en plein écran exclusif,
+  l'appareil Direct3D du trainer est perdu, `Present` rend la main aussitôt
+  et la boucle relisait la mémoire du jeu sans arrêt. Pause de 10 ms dans ce
+  cas et quand la fenêtre est réduite. Le journal donne le rythme toutes les
+  30 s (`Boucle du trainer: N tours/s`).
+- Le jeu moddé utilise `bin\d3d8.dll` (d3d8to9 de crosire, ReShade), qui fait
+  passer le rendu Direct3D 8 par Direct3D 9 ; l'original utilise le
+  Direct3D 8 natif de Windows 10, connu pour saccader.
+
 ## Tester
 
 Le jeu d'origine est lancé en administrateur (`RUNASADMIN`), donc le trainer
