@@ -15869,7 +15869,9 @@ std::uintptr_t MeasureActorTableOffset(
     // cette forme. La forme est trop particuliere pour se produire par hasard.
     if (!reference_players.empty())
     {
-        static constexpr std::uintptr_t kFirstRank = 0xB0;
+        // hde.exe d'origine : 8 virtuelles de moins, GetTable est au rang
+        // 0xAC (table a +0x190) au lieu de 0xB4 (+0x1A4) dans le mod.
+        static constexpr std::uintptr_t kFirstRank = 0xA8;
         static constexpr std::uintptr_t kLastRank = 0xC0;
         const std::uintptr_t actor = reference_players.front();
         std::uintptr_t vtable = 0;
@@ -15911,7 +15913,7 @@ std::uintptr_t MeasureActorTableOffset(
         }
         LogDiagnostic(
             "Table d'acteur: `GetTable` non reconnue dans la vtable "
-            "(rangs +0xB0 a +0xC0). On retombe sur le balayage.");
+            "(rangs +0xA8 a +0xC0). On retombe sur le balayage.");
     }
 
     // V130 - on demande d'abord au CODE, avant de balayer.

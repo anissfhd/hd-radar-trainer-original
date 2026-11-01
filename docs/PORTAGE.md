@@ -137,6 +137,37 @@ et compare avec les octets attendus par le trainer porté : 28/28 conformes.
 `CreateActor` (apparition de soldats) et `SetFrame` sont trouvés à l'exécution
 par motif ; chacun a un seul candidat valide dans l'original.
 
+## Audit complet (1er novembre)
+
+Chaque fonction du trainer a été reprise, avec ce qu'elle lit ou écrit dans
+le jeu, et contrôlée sur le `hde.exe` et l'`i3d2.dll` d'origine.
+
+| Contrôle | Résultat |
+|---|---|
+| Points de hook (`verify_hooks.py`) | 28/28 conformes |
+| Tous les motifs d'octets du code source (48) | tous présents dans l'original |
+| Adresses absolues du mod restantes dans le code | aucune |
+| Offsets de soldat écrits en dur (0x178..0x2E8) | tous portés (−0x14) |
+| Appels à `cbProc` (6) | tous à 3 arguments ; messages 14, 17, 21, 42 |
+| Sous-code 13 de `CB_USE_AUTO` (arrêt du véhicule) | même traitement |
+| `AddProgram` / `DelProgram` (+0x24 / +0x28) | même code, `ret 10h` / `ret 8`, programme à +0x2C |
+| Fonctions gardées du bandeau (SetHealth…) | uniques, mêmes conventions de retour |
+| Driver i3d (création de modèles) | global `0x4FA6C0` unique (14 sites) |
+| Numéros de propriétés des tables (8, 9, 65, 74, 96 ; arme 12) | identiques |
+| Mission : scène +0x10, acteurs +0x68, carte +0xA0/+0xA4 | identiques |
+| `i3d2.dll` : build différent (2003 contre 2024) | mêmes vtables, mêmes champs (99,3 % des accès), `I3D_frame::Update` au même endroit |
+
+**Corrigé** : `GetTable` (lecture de la fiche d'un soldat, utilisée par la
+création de soldats et les menus) est au rang `0xAC` de la vtable dans
+l'original, hors de la plage `0xB0..0xC0` balayée. La plage commence
+maintenant à `0xA8` ; la fiche est à `+0x190`.
+
+**Corrigé** : un échec du suivi des balles coupait aussi l'aimbot.
+
+Vérifié en jeu (journal du 1er novembre) : vitesse du jeu, les quatre gardes
+de la protection absolue, filtre de dégâts, `CreateActor`, `menu_id`, radar,
+ESP.
+
 ## Tester
 
 Le jeu d'origine est lancé en administrateur (`RUNASADMIN`), donc le trainer
