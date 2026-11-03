@@ -9,3 +9,16 @@
 
 
 __pycache__/
+
+# Journaux du trainer
+hdradar_diag.log
+*.log
+
+# Binaires
+*.exe
+*.dll
+*.obj
+*.pdb
+*.ilk
+
+Thumbs.db
