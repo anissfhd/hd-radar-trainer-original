@@ -28,6 +28,14 @@ The two binaries are different compilations: 35 of the 36 code and data addresse
 
 ---
 
+## Download
+
+The ready-to-run trainer is published as a **[GitHub Release](https://github.com/anissfhd/hd-radar-trainer-original/releases/latest)** — one executable, no installer: `HDFinalAdvancedV165_ORIGINAL.exe`. Its SHA-256 checksum is listed in the release notes.
+
+**Requirements:** Hidden & Dangerous Deluxe 1.50, original `hde.exe`; Windows 10/11; the [Microsoft Visual C++ Redistributable x86](https://aka.ms/vs/17/release/vc_redist.x86.exe). Windows Defender and SmartScreen commonly flag trainers because they read and write another process's memory; the full source is here to check what the executable does.
+
+---
+
 ## Feature status on the original game
 
 | Feature | Status |
